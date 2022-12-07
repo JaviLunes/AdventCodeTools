@@ -5,7 +5,7 @@
 from string import Template
 
 PACKAGE_NAME = "aoc_tools"
-MODULE_DAILY_SCRIPT = Template("aoc$year.day$day.solution")
+MODULE_DAILY_SCRIPT = Template("aoc$year.day_$day.solution")
 FILE_DAILY_INPUT = Template("day_$day/puzzle_input.txt")
 FILE_DAILY_SCRIPT = Template("day_$day/solution.py")
 FILE_DAILY_TESTS = Template("tests_day_$day.py")
