@@ -1,0 +1,33 @@
+{% set data = load_setup_py_data(setup_file="../setup.py", from_recipe_dir=True) %}
+
+package:
+  name: {{ data.get("name") }}
+  version: {{ GIT_DESCRIBE_TAG }}
+
+source:
+  path: ..
+
+build:
+  number: {{ GIT_DESCRIBE_NUMBER|int }}
+  noarch: python
+  script: python setup.py install --single-version-externally-managed --record=record.txt
+
+requirements:
+  build:
+    - python
+    - setuptools >=42
+  run:
+    - python >=3.10,<4
+    {% for dependency in data["install_requires"] %}
+    - {{ dependency.lower() }}
+    {% endfor %}
+
+test:
+  imports:
+    - {{ data.get("name") }}
+  source_files:
+    - tests
+
+about:
+  home: {{ data.get("url") }}
+  summary: {{ data.get("description") }}
