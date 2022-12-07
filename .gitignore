@@ -1,0 +1,10 @@
+# Compiled Python modules:
+*.pyc
+
+# IDEs:
+.idea
+
+# Package building:
+*.egg-info
+*.egg
+dist
