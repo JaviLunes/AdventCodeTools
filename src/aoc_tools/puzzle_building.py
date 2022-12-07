@@ -4,15 +4,20 @@
 # Standard library imports:
 from pathlib import Path
 
+# Local application imports:
+from aoc_tools.constants import FILE_DAILY_INPUT, FILE_DAILY_SCRIPT
+from aoc_tools.constants import FILE_DAILY_TESTS, FILE_DAILY_TOOLS
+from aoc_tools.constants import PACKAGE_NAME
+
 
 class AdventBuilder:
     """Manage template file building tasks."""
     def __init__(self, year: int, puzzle_names: list[str], puzzles_base_path: Path,
                  tests_base_path: Path):
-        self._year = year
-        self._puzzles = puzzle_names
-        self._puzzles_path = puzzles_base_path
-        self._tests_path = tests_base_path
+        self.year = year
+        self.puzzles = puzzle_names
+        self.puzzles_path = puzzles_base_path
+        self.tests_path = tests_base_path
 
     def build_templates(self, day: int):
         """Built input, tools, solving and tests template files for the provided day."""
@@ -23,7 +28,7 @@ class AdventBuilder:
 
     def build_all_templates(self):
         """Built input, tools, solving and tests template files for all days."""
-        for day in range(1, len(self._puzzles) + 1):
+        for day in range(1, len(self.puzzles) + 1):
             self.build_templates(day=day)
 
     @staticmethod
@@ -36,42 +41,43 @@ class AdventBuilder:
 
     def _prepare_input(self, day: int) -> tuple[Path, list[str]]:
         """Get file path and content lines for the puzzle input file."""
-        return self._puzzles_path / f"day_{day}" / "puzzle_input.txt", [""]
+        return self.puzzles_path / FILE_DAILY_INPUT.substitute(day=day), [""]
 
     def _prepare_solution(self, day: int) -> tuple[Path, list[str]]:
         """Get file path and content lines for the puzzle-solving script file."""
-        file_path = self._puzzles_path / f"day_{day}" / "solution.py"
+        file_path = self.puzzles_path / FILE_DAILY_SCRIPT.substitute(day=day)
+        input_file = FILE_DAILY_INPUT.substitute(day=day)
         lines = [
             '# coding=utf-8\n',
-            f'"""Compute the solution of the {self._puzzles[day - 1]} puzzle."""\n',
+            f'"""Compute the solution of the {self.puzzles[day - 1]} puzzle."""\n',
             '\n',
             '# Standard library imports:\n',
             'from pathlib import Path\n',
             '\n',
             '# Local application imports:\n',
-            'from aoc_tools import read_puzzle_input\n',
-            f'from aoc{self._year}.day_{day}.tools import ...\n',
+            f'from {PACKAGE_NAME} import read_puzzle_input\n',
+            f'from aoc{self.year}.day_{day}.tools import ...\n',
             '\n', '\n',
             'def compute_solution() -> tuple[int, int]:\n',
             '    """Compute the answers for the two parts of this day."""\n',
-            f'    input = Path(__file__).parent / "day_{day}" / "puzzle_input.txt"\n',
-            '    lines = read_puzzle_input(input_file=input)\n',
+            f'    input_file = Path(__file__).parent / "{input_file}"\n',
+            '    lines = read_puzzle_input(input_file=input_file)\n',
             '    ...\n',
             '    return None, None\n']
         return file_path, lines
 
     def _prepare_tests(self, day: int) -> tuple[Path, list[str]]:
         """Get file path and content lines for the tool-testing script file."""
-        file_path = self._tests_path / f"tests_day_{day}.py"
+        file_path = self.tests_path / FILE_DAILY_TESTS.substitute(day=day)
         lines = [
             '# coding=utf-8\n',
-            f'"""Tests for the {self._puzzles[day - 1]} puzzle."""\n',
+            f'"""Tests for the {self.puzzles[day - 1]} puzzle."""\n',
             '\n',
             '# Standard library imports:\n',
             'import unittest\n',
             '\n',
             '# Local application imports:\n',
-            f'from aoc{self._year}.day_{day}.tools import ...\n',
+            f'from aoc{self.year}.day_{day}.tools import ...\n',
             '\n', '\n',
             'class ExampleTests(unittest.TestCase):\n',
             '    def setUp(self) -> None:\n',
@@ -81,9 +87,9 @@ class AdventBuilder:
 
     def _prepare_tools(self, day: int):
         """Get file path and content lines for the tool module file."""
-        file_path = self._puzzles_path / f"day_{day}" / "tools.py"
+        file_path = self.puzzles_path / FILE_DAILY_TOOLS.substitute(day=day)
         lines = [
             '# coding=utf-8\n',
-            f'"""Tools used for solving the {self._puzzles[day - 1]} puzzle."""\n',
+            f'"""Tools used for solving the {self.puzzles[day - 1]} puzzle."""\n',
             '\n']
         return file_path, lines

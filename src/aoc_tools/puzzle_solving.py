@@ -4,16 +4,14 @@
 # Standard library imports:
 from importlib import import_module
 from pathlib import Path
-from string import Template
 from time import time
 
 # Third party imports:
 import pandas
 
-# Set constants:
-PUZZLE_URL = Template("https://adventofcode.com/$year/day/$day")
-GITHUB_SOLUTION_URL = Template("https://github.com/JaviLunes/AdventCode$year/tree"
-                               "/master/src/aoc$year/day_$day/solution.py")
+# Local application imports:
+from aoc_tools.constants import MODULE_DAILY_SCRIPT
+from aoc_tools.constants import URL_ADVENT_PUZZLE, URL_GITHUB_SCRIPT
 
 
 def read_puzzle_input(input_file: Path) -> list[str]:
@@ -52,7 +50,8 @@ class AdventSolver:
     def solve_day(self, day: int) -> tuple[int | None, int | None, str]:
         """Get the solutions and execution time for the target day's puzzles."""
         try:
-            module = import_module(f"aoc{self.year}.day_{day}.solution")
+            module_name = MODULE_DAILY_SCRIPT.substitute(year=self.year, day=day)
+            module = import_module(module_name)
         except ModuleNotFoundError:
             return None, None, ""
         start = time()
@@ -201,9 +200,8 @@ class AdventCalendar:
     def _add_hyper_links(self, data_frame: pandas.DataFrame) -> pandas.DataFrame:
         """Add hyperlinks to puzzle pages and to solution scripts in GitHub."""
         for idx, (day, puzzle, stars, s1, s2, timing) in data_frame.iterrows():
-            template_mapping = {"day": day, "year": self._solver.year}
-            link_puzzle = PUZZLE_URL.substitute(template_mapping)
-            link_solution = GITHUB_SOLUTION_URL.substitute(template_mapping)
+            link_puzzle = URL_ADVENT_PUZZLE.substitute(day=day, year=self._solver.year)
+            link_solution = URL_GITHUB_SCRIPT.substitute(day=day, year=self._solver.year)
             data_frame.loc[idx, "Day"] = f"[{day}]({link_puzzle})"
             data_frame.loc[idx, "Puzzle"] = f"[{puzzle}]({link_puzzle})"
             if s1 != "-" or s2 != "-":
