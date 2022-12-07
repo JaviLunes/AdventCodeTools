@@ -3,7 +3,15 @@
 
 # Standard library imports:
 from importlib import import_module
+from pathlib import Path
 from time import time
+
+
+def read_puzzle_input(input_file: Path) -> list[str]:
+    """Read, process and return each line in the input file for the target day."""
+    with open(input_file, mode="r") as file:
+        lines = [line.removesuffix("\n") for line in file]
+    return lines
 
 
 class AdventSolver:
