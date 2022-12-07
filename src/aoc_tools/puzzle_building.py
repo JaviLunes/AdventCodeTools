@@ -60,7 +60,7 @@ class AdventBuilder:
             '\n', '\n',
             'def compute_solution() -> tuple[int, int]:\n',
             '    """Compute the answers for the two parts of this day."""\n',
-            f'    input_file = Path(__file__).parent / "{input_file}"\n',
+            f'    input_file = Path(__file__).parents[1] / "{input_file}"\n',
             '    lines = read_puzzle_input(input_file=input_file)\n',
             '    ...\n',
             '    return None, None\n']
