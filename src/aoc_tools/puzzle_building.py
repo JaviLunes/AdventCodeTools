@@ -1,5 +1,5 @@
 # coding=utf-8
-"""Shared tools used across different daily puzzles."""
+"""Tools used for building template files for individual advent puzzles."""
 
 # Standard library imports:
 from pathlib import Path
