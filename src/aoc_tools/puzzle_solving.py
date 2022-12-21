@@ -14,9 +14,9 @@ from aoc_tools.constants import MODULE_DAILY_SCRIPT
 from aoc_tools.constants import URL_ADVENT_PUZZLE, URL_GITHUB_SCRIPT
 
 
-def read_puzzle_input(input_file: Path) -> list[str]:
+def read_puzzle_input(input_file: Path, encoding: str = "utf-8") -> list[str]:
     """Read, process and return each line in the input file for the target day."""
-    with open(input_file, mode="r") as file:
+    with open(input_file, mode="r", encoding=encoding) as file:
         lines = [line.removesuffix("\n") for line in file]
     return lines
 
