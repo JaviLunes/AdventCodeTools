@@ -7,7 +7,7 @@ import unittest
 
 # Local application imports:
 from aoc_tools.puzzle_solving import read_puzzle_input
-from aoc_tools.pixel_parsing import PixelParser
+from aoc_tools.algorithms.pixel_parsing import PixelParser
 
 # Set constants:
 DATA_PATH = Path(__file__).parent / "data" / "pixel_parser"
