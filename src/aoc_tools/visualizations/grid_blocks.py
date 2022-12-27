@@ -107,11 +107,6 @@ class _GridNDPlotter:
             data_array[index] = value
         return data_array
 
-    def _draw_grid_values(self, axe: Axes, data_array: numpy.ndarray):
-        """Add a 2D square tessellation coloured according to the cell values."""
-        rgb_array = self._palette.apply_palette(value_array=data_array)
-        axe.imshow(rgb_array, origin="upper", aspect="equal")
-
     def _build_hv_shape(self, h: str, v: str) -> tuple[int, int]:
         """Prepare the shape of the 2D array to be drawn."""
         h_lim, v_lim = self._limits[h], self._limits[v]
@@ -120,10 +115,9 @@ class _GridNDPlotter:
     def _build_target_cells(self, **other_coord_values: int) -> Iterable[CellND]:
         """Filter in stored cells matching target values of non-HV coordinates."""
         for cell in self._cells:
-            for c, value in other_coord_values.items():
-                if cell.coord_map[c] != value:
-                    continue
-            yield cell
+            outside = any(cell.coord_map[c] != v for c, v in other_coord_values.items())
+            if not outside:
+                yield cell
 
     def _build_hv_value_map(self, cells: Iterable[CellND], h: str, v: str) \
             -> dict[tuple[int, int], Scalar]:
@@ -131,6 +125,11 @@ class _GridNDPlotter:
         max_v, min_h = self._limits[v][1], self._limits[h][0]
         return {(max_v - cell.coord_map[v], cell.coord_map[h] - min_h): cell.value
                 for cell in cells}
+
+    def _draw_grid_values(self, axe: Axes, data_array: numpy.ndarray):
+        """Add a 2D square tessellation coloured according to the cell values."""
+        rgb_array = self._palette.apply_palette(value_array=data_array)
+        axe.imshow(rgb_array, origin="upper", aspect="equal")
 
     @staticmethod
     def _draw_grid_borders(axe: Axes):
