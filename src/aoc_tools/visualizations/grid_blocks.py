@@ -174,3 +174,10 @@ class Grid2DPlotter(_GridNDPlotter):
     def plot_xy(self):
         """Plot the stored 2D cells in a regular tessellation of squares."""
         self._plot_hv(h_coord="x", v_coord="y")
+
+
+class Grid3DPlotter(_GridNDPlotter):
+    """Create a 2D mosaic-like plot from a list of Cell2D objects."""
+    def plot_xy(self, z: int):
+        """Plot the stored 2D cells in a regular tessellation of squares."""
+        self._plot_hv(h_coord="x", v_coord="y", z=z)

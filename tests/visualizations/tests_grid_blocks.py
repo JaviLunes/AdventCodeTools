@@ -7,7 +7,7 @@ import unittest
 # Local application imports:
 # noinspection PyProtectedMember
 from aoc_tools.visualizations.grid_blocks import CellND, _GridNDPlotter
-from aoc_tools.visualizations.grid_blocks import Grid2DPlotter
+from aoc_tools.visualizations.grid_blocks import Grid2DPlotter, Grid3DPlotter
 
 
 class BaseFeaturesTests(unittest.TestCase):
@@ -70,3 +70,33 @@ class Grid2DTests(unittest.TestCase):
         cells = [CellND(x=x, y=y, value=v) for x, y, v in self.cell_params]
         plotter = Grid2DPlotter(cells=cells)
         plotter.plot_xy()
+
+
+class Grid3DTests(unittest.TestCase):
+    def setUp(self) -> None:
+        """Prepare the objects to be used during tests."""
+        self.cell_params = [
+            # Level -2:
+            (4, 3, -2, 1), (4, 4, -2, 1),
+            # Level -1:
+            (3, 3, -1, 1), (3, 4, -1, 1), (4, 2, -1, 1), (4, 3, -1, 2), (4, 4, -1, 2),
+            (4, 5, -1, 1), (5, 3, -1, 1), (5, 4, -1, 1),
+            # Level 0:
+            (1, 1, 0, 1), (1, 2, 0, 1), (2, 2, 0, 1), (2, 3, 0, 1), (2, 4, 0, 1),
+            (3, 2, 0, 1), (3, 3, 0, 2), (3, 4, 0, 1), (4, 1, 0, 1), (4, 2, 0, 1),
+            (4, 3, 0, 2), (4, 4, 0, 2), (4, 5, 0, 1), (5, 2, 0, 1), (5, 3, 0, 1),
+            (5, 4, 0, 1), (5, 5, 0, 1), (6, 4, 0, 1), (7, 2, 0, 1),
+            # Level 1:
+            (3, 3, 1, 1), (4, 3, 1, 2), (4, 4, 1, 1), (7, 2, 1, 1),
+            # Level 2:
+            (4, 3, 2, 1), (7, 2, 2, 2)]
+
+    def test_plot_xy_at_z_levels(self):
+        """Assert the XY planes at different Z levels can be plotted."""
+        cells = [CellND(x=x, y=y, z=z, value=v) for x, y, z, v in self.cell_params]
+        plotter = Grid3DPlotter(cells=cells)
+        plotter.plot_xy(z=-2)
+        plotter.plot_xy(z=-1)
+        plotter.plot_xy(z=0)
+        plotter.plot_xy(z=1)
+        plotter.plot_xy(z=2)
