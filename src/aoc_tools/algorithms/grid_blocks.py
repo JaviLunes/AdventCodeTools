@@ -5,28 +5,23 @@
 from typing import Any
 
 
-class Cell2D:
-    """Discrete location in a 2D grid region."""
-    __slots__ = ["x", "y", "value"]
+class CellND:
+    """Discrete location in a generic nD gridded region."""
+    __slots__ = ["value", "coord_map"]
 
-    def __init__(self, x: int, y: int, value: Any = None):
-        self.x, self.y = x, y
+    def __init__(self, value: Any = None, **coord_values: int):
         self.value = value
+        self.coord_map = coord_values
 
     def __repr__(self) -> str:
-        return f"({self.x},{self.y})"
+        return f"({tuple(self.coord_map.values())})"
 
-    def __eq__(self, other: "Cell2D") -> bool:
-        return self.x == other.x and self.y == other.y
+    def __eq__(self, other: "CellND") -> bool:
+        return self.coord_map == other.coord_map
 
     def __hash__(self) -> int:
-        return hash((self.x, self.y))
+        return hash(tuple(self.coord_map.values()))
 
-    def distance(self, other: "Cell2D") -> int:
-        """Compute the Manhattan distance between this and another Cell2D."""
-        return abs(other.x - self.x) + abs(other.y - self.y)
-
-    @property
-    def xy(self) -> tuple[int, int]:
-        """Provide the XY coordinates of this Cell2D as a tuple."""
-        return self.x, self.y
+    def distance(self, other: "CellND") -> int:
+        """Compute the Manhattan distance between this and another Cell3D."""
+        return sum(other.coord_map[c] - self.coord_map[c] for c in self.coord_map.keys())
