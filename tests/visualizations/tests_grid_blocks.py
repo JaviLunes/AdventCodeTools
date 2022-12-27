@@ -31,7 +31,7 @@ class Grid2DTests(unittest.TestCase):
 
     def test_string_cell_values(self):
         """Assert cells with string values can be successfully plotted."""
-        value_map = {0: "outside", 1: "lava", 2: "pocket"}
+        value_map = {0: "Alpha", 1: "Beta", 2: "Gamma"}
         cells = [Cell2D(x=x, y=y, value=value_map[v]) for x, y, v in self.cell_params]
         plotter = Grid2DPlotter(cells=cells, empty_value=value_map[0])
         plotter.plot_xy()

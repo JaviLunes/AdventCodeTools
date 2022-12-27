@@ -79,62 +79,63 @@ class Grid2DPlotter:
         return dict(x=(min_x, max_x), y=(min_y, max_y))
 
     def plot_xy(self):
-        """Plot the stored cells in a 2D gridded, rectangular region."""
+        """Plot the stored 2D cells in a regular tessellation of squares."""
         fig, axe = plt.subplots()
         self._draw_grid_values(axe=axe)
         self._draw_grid_borders(axe=axe)
-        self._set_labels(axe=axe)
+        self._draw_labels(axe=axe)
         if self._legend:
-            self._set_legend(fig=fig)
+            self._draw_legend(fig=fig)
         fig.tight_layout(rect=(0, 0.01, 1, 0.95 if self._legend else 1))
         plt.show()
 
+    def _build_hv_labels(self) -> tuple[list[int], list[int]]:
+        """Prepare tick ranges for the horizontal- and vertical-axis."""
+        h_labels = list(range(self._limits["x"][0], self._limits["x"][1] + 1))
+        v_labels = list(range(self._limits["y"][0], self._limits["y"][1] + 1))[::-1]
+        return h_labels, v_labels
+
+    def _build_hv_shape(self) -> tuple[int, int]:
+        """Prepare the shape of the 2D array to be drawn."""
+        h_lim, v_lim = self._limits["x"], self._limits["y"]
+        return v_lim[1] - v_lim[0] + 1, h_lim[1] - h_lim[0] + 1
+
+    def _build_hv_value_map(self) -> dict[tuple[int, int], Scalar]:
+        """Prepare a mapping of cell hv coordinates to cell values."""
+        max_v, min_h = self._limits["y"][1], self._limits["x"][0]
+        return {(max_v - cell.y, cell.x - min_h): cell.value for cell in self._cells}
+
     def _draw_grid_values(self, axe: Axes):
-        """Set the color of each plot's cell by the value of the matching Cell."""
+        """Add a 2D square tessellation coloured according to the cell values."""
+        # Build 2D array of cell values:
         value_type = type(self._cells[0].value)
         if value_type == str:
             value_type = object
-        x_lim, y_lim = self._limits["x"], self._limits["y"]
-        shape = y_lim[1] - y_lim[0] + 1, x_lim[1] - x_lim[0] + 1
-        cell_array = numpy.full(shape, fill_value=self._empty_value, dtype=value_type)
-        for cell in self._cells:
-            i, j = self._get_indices(cell=cell)
-            cell_array[(i, j)] = cell.value
-        rgb_array = self._palette.apply_palette(value_array=cell_array)
-        axe.imshow(rgb_array, origin="lower", aspect="equal")
+        shape = self._build_hv_shape()
+        data_array = numpy.full(shape, fill_value=self._empty_value, dtype=value_type)
+        for index, value in self._build_hv_value_map().items():
+            data_array[index] = value
+        # Transform into array with RGB channel:
+        rgb_array = self._palette.apply_palette(value_array=data_array)
+        axe.imshow(rgb_array, origin="upper", aspect="equal")
 
-    def _get_indices(self, cell: Cell2D) -> tuple[int, int]:
-        """Transform a Cell's XY coordinates into ij indices on a 2D array."""
-        i = self._limits["y"][1] - cell.y
-        j = cell.x - self._limits["x"][0]
-        return i, j
-
-    def _draw_grid_borders(self, axe: Axes):
-        """Set the borders of each plotted cell."""
-        x_labels, y_labels = self._build_axis_labels()
-        axe.set_xlim(-0.5, len(x_labels) - 0.5)
-        axe.set_ylim(len(y_labels) - 0.5, -0.5)
-        for spine in axe.spines.values():
-            spine.set_linewidth(3)
+    @staticmethod
+    def _draw_grid_borders(axe: Axes):
+        """Add the four edge lines of each plotted cell."""
+        [spine.set_linewidth(3) for spine in axe.spines.values()]
         axe.grid(which="minor", color="black", linewidth=3)
 
-    def _set_labels(self, axe: Axes):
+    def _draw_labels(self, axe: Axes):
         """Add ticks and text labels to the plot's spines."""
-        x_labels, y_labels = self._build_axis_labels()
+        h_labels, v_labels = self._build_hv_labels()
         axe.tick_params(width=3)
-        axe.set_xticks(range(len(x_labels)), labels=x_labels, weight="bold", minor=False)
-        axe.set_yticks(range(len(y_labels)), labels=y_labels, weight="bold", minor=False)
-        axe.set_xticks(numpy.arange(-0.5, len(x_labels) + 0.5), minor=True)
-        axe.set_yticks(numpy.arange(-0.5, len(y_labels) + 0.5), minor=True)
+        axe.set_xticks(range(len(h_labels)), labels=h_labels, weight="bold", minor=False)
+        axe.set_yticks(range(len(v_labels)), labels=v_labels, weight="bold", minor=False)
+        axe.set_xticks(numpy.arange(-0.5, len(h_labels) + 0.5), minor=True)
+        axe.set_yticks(numpy.arange(-0.5, len(v_labels) + 0.5), minor=True)
         axe.tick_params(which="minor", length=0)
 
-    def _build_axis_labels(self) -> tuple[list[int], list[int]]:
-        """Generate X- and Y-axis tick positions for the plotted region."""
-        x_labels = list(range(self._limits["x"][0], self._limits["x"][1] + 1))
-        y_labels = list(range(self._limits["y"][0], self._limits["y"][1] + 1))[::-1]
-        return x_labels, y_labels
-
-    def _set_legend(self, fig: Figure):
+    def _draw_legend(self, fig: Figure):
         """Add a legend with drawn cell values."""
         patches = [self._build_legend_patch(value=value) for value in self._values]
         font_properties = FontProperties(weight="bold", size=10)
@@ -146,5 +147,5 @@ class Grid2DPlotter:
         legend.set_in_layout(False)
 
     def _build_legend_patch(self, value) -> Patch:
-        """Create a Patch artist using the palette colour of the provided value."""
+        """Prepare a Patch artist using the palette colour of the provided value."""
         return Patch(facecolor=self._palette[value], edgecolor="black", linewidth=2)
