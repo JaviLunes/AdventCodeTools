@@ -144,7 +144,18 @@ class Grid2DPlotter(GridNDPlotter):
 
 
 class Grid3DPlotter(GridNDPlotter):
-    """Create a 2D mosaic-like plot from a list of Cell2D objects."""
-    def plot_xy(self, z: int):
-        """Plot the stored 2D cells in a regular tessellation of squares."""
-        self._plot_hv(h_coord="x", v_coord="y", z=z)
+    """Create a 2D mosaic-like plot from a list of XYZ cell objects."""
+    def plot_along_x(self):
+        """Make an YZ tessellation plot at each different X level."""
+        for x in range(self._limits["x"][0], self._limits["x"][1] + 1):
+            self._plot_hv(h_coord="y", v_coord="z", x=x)
+
+    def plot_along_y(self):
+        """Make an XZ tessellation plot at each different Y level."""
+        for y in range(self._limits["y"][0], self._limits["y"][1] + 1):
+            self._plot_hv(h_coord="x", v_coord="z", y=y)
+
+    def plot_along_z(self):
+        """Make an XY tessellation plot at each different Z level."""
+        for z in range(self._limits["z"][0], self._limits["z"][1] + 1):
+            self._plot_hv(h_coord="x", v_coord="y", z=z)

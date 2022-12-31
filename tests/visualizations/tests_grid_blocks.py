@@ -90,12 +90,20 @@ class Grid3DTests(unittest.TestCase):
             # Level 2:
             (4, 3, 2, 1), (7, 2, 2, 2)]
 
-    def test_plot_xy_at_z_levels(self):
-        """Assert the XY planes at different Z levels can be plotted."""
+    def test_plot_along_x_level(self):
+        """Assert all YZ planes at each X level can be plotted."""
         cells = [CellND(x=x, y=y, z=z, value=v) for x, y, z, v in self.cell_params]
         plotter = Grid3DPlotter(cells=cells)
-        plotter.plot_xy(z=-2)
-        plotter.plot_xy(z=-1)
-        plotter.plot_xy(z=0)
-        plotter.plot_xy(z=1)
-        plotter.plot_xy(z=2)
+        plotter.plot_along_x()
+
+    def test_plot_along_y_level(self):
+        """Assert all XZ planes at each Y level can be plotted."""
+        cells = [CellND(x=x, y=y, z=z, value=v) for x, y, z, v in self.cell_params]
+        plotter = Grid3DPlotter(cells=cells)
+        plotter.plot_along_y()
+
+    def test_plot_along_z_level(self):
+        """Assert all XY planes at each Z level can be plotted."""
+        cells = [CellND(x=x, y=y, z=z, value=v) for x, y, z, v in self.cell_params]
+        plotter = Grid3DPlotter(cells=cells)
+        plotter.plot_along_z()
