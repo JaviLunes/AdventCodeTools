@@ -20,7 +20,7 @@ from aoc_tools.visualizations.colours import ValuePalette, RGB
 Scalar = TypeVar("Scalar", str, int, float)
 
 
-class _GridNDPlotter:
+class GridNDPlotter:
     """Base class for plotting mosaic-like regions composed of regular cells."""
     def __init__(self, cells: list[CellND], empty_value: Scalar = 0,
                  palette: dict[Scalar, str | RGB] = None, legend: bool = True):
@@ -136,14 +136,14 @@ class _GridNDPlotter:
         return Patch(facecolor=self._palette[value], edgecolor="black", linewidth=2)
 
 
-class Grid2DPlotter(_GridNDPlotter):
+class Grid2DPlotter(GridNDPlotter):
     """Create a 2D mosaic-like plot from a list of XY cell objects."""
     def plot_xy(self):
         """Plot the stored 2D cells in a regular tessellation of squares."""
         self._plot_hv(h_coord="x", v_coord="y")
 
 
-class Grid3DPlotter(_GridNDPlotter):
+class Grid3DPlotter(GridNDPlotter):
     """Create a 2D mosaic-like plot from a list of Cell2D objects."""
     def plot_xy(self, z: int):
         """Plot the stored 2D cells in a regular tessellation of squares."""
