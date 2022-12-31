@@ -49,15 +49,25 @@ class GridNDPlotter:
 
     def _plot_hv(self, h_coord: str, v_coord: str, **other_coord_values: int):
         """Plot the stored cells along an HV plane."""
-        fig, axe = plt.subplots()
+        fig, axe, legend_axe = self._build_figure_and_axes()
         data_array = self._build_2d_array(h=h_coord, v=v_coord, **other_coord_values)
         self._draw_grid_values(axe=axe, data_array=data_array)
         self._draw_grid_borders(axe=axe)
         self._draw_labels(axe=axe, h=h_coord, v=v_coord)
         if self._legend:
-            self._draw_legend(fig=fig)
-        fig.tight_layout(rect=(0, 0.01, 1, 0.95 if self._legend else 1))
+            self._draw_legend(legend_axe=legend_axe)
+        fig.tight_layout(pad=0.1)
         plt.show()
+
+    def _build_figure_and_axes(self) -> tuple[Figure, Axes, Axes | None]:
+        """Create the figure and axes where the data will be plotted."""
+        if self._legend:
+            fig, (axe, legend_axe) = plt.subplots(nrows=2, height_ratios=[18, 1])
+            legend_axe.axis("off")
+        else:
+            fig, axe = plt.subplots()
+            legend_axe = None
+        return fig, axe, legend_axe
 
     def _build_2d_array(self, h: str, v: str, **other_coord_values: int):
         """Prepare a 2D array with values of cells inside the target HV plane."""
@@ -106,7 +116,8 @@ class GridNDPlotter:
 
     def _draw_labels(self, axe: Axes, h: str, v: str):
         """Add ticks and text labels to the plot's spines."""
-        h_labels, v_labels = self._build_hv_labels(h=h, v=v)
+        h_labels = list(range(self._limits[h][0], self._limits[h][1] + 1))
+        v_labels = list(range(self._limits[v][0], self._limits[v][1] + 1))[::-1]
         axe.tick_params(width=3)
         axe.set_xticks(range(len(h_labels)), labels=h_labels, weight="bold", minor=False)
         axe.set_yticks(range(len(v_labels)), labels=v_labels, weight="bold", minor=False)
@@ -114,22 +125,15 @@ class GridNDPlotter:
         axe.set_yticks(numpy.arange(-0.5, len(v_labels) + 0.5), minor=True)
         axe.tick_params(which="minor", length=0)
 
-    def _build_hv_labels(self, h: str, v: str) -> tuple[list[int], list[int]]:
-        """Prepare tick ranges for the horizontal- and vertical-axis."""
-        h_labels = list(range(self._limits[h][0], self._limits[h][1] + 1))
-        v_labels = list(range(self._limits[v][0], self._limits[v][1] + 1))[::-1]
-        return h_labels, v_labels
-
-    def _draw_legend(self, fig: Figure):
+    def _draw_legend(self, legend_axe: Axes):
         """Add a legend with drawn cell values."""
         patches = [self._build_legend_patch(value=value) for value in self._values]
         font_properties = FontProperties(weight="bold", size=10)
-        legend_bbox = (0, 0.93, 1, 0.06)
-        legend = fig.legend(
+        legend_axe.legend(
             handles=patches, labels=self._values, ncols=min(6, len(self._values)),
-            loc="center", bbox_to_anchor=legend_bbox, prop=font_properties,
+            loc="center",
+            prop=font_properties, framealpha=1,
             frameon=True, fancybox=False, edgecolor="black")
-        legend.set_in_layout(False)
 
     def _build_legend_patch(self, value) -> Patch:
         """Prepare a Patch artist filled with the palette colour for the target value."""
