@@ -56,6 +56,7 @@ class GridNDPlotter:
         self._draw_labels(axe=axe, h=h_coord, v=v_coord)
         if self._legend:
             self._draw_legend(legend_axe=legend_axe)
+        self._draw_title(axe=axe, h=h_coord, v=v_coord, **other_coord_values)
         fig.tight_layout(pad=0.1)
         plt.show()
 
@@ -138,6 +139,15 @@ class GridNDPlotter:
     def _build_legend_patch(self, value) -> Patch:
         """Prepare a Patch artist filled with the palette colour for the target value."""
         return Patch(facecolor=self._palette[value], edgecolor="black", linewidth=2)
+
+    @staticmethod
+    def _draw_title(axe: Axes, h: str, v: str, **other_coord_values: int):
+        """Add a title label describing the coordinates of the target plane."""
+        hv_plane = f"{h.upper()}{v.upper()} plane"
+        other_levels = [f"{k.upper()}={v}" for k, v in other_coord_values.items()]
+        other_levels = f" at {', '.join(other_levels)}" if other_levels else ""
+        label = f"{hv_plane}{other_levels}"
+        axe.set_title(label, loc="center", fontsize=12, fontweight="bold")
 
 
 class Grid2DPlotter(GridNDPlotter):
