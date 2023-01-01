@@ -64,7 +64,7 @@ class ASNode(metaclass=abc.ABCMeta):
 
 def a_star_search(start: ASNode, goal_func: Callable) -> ASNode:
     """Find the path of lesser cost for reaching a goal objective from a start ASNode."""
-    # Build lists / queues / min heaps / sets / cost maps:
+    # Build search registers:
     pending_nodes = [start]
     visited_nodes = set()
     best_g_costs = {start.id: start.g}
@@ -76,16 +76,16 @@ def a_star_search(start: ASNode, goal_func: Callable) -> ASNode:
             return q_node
         if q_node in visited_nodes:
             continue  # Skip node if its location was already visited.
-        # For each possible neighbour node:
+        # For each possible successor node:
         for s_node in q_node.get_successors():
             if s_node in visited_nodes:
-                continue  # Skip successor if its location was already visited:
+                continue  # Skip successor if it was already visited:
             if s_node.g >= best_g_costs.get(s_node.id, 99999):
-                continue  # Skip successor if worse than its location's best cost.
+                continue  # Skip successor if worse than its hash's best cost.
             # Register successor node for future checking:
             heapq.heappush(pending_nodes, s_node)
             best_g_costs[s_node.id] = s_node.g
-        # Register the parent node's location as already seen:
+        # Register the original node as already seen:
         visited_nodes.add(q_node)
     # If code reaches this point, the goal was never reached:
     raise ValueError("The search could not reach the end ASNode.")
