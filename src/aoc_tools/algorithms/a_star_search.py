@@ -1,5 +1,5 @@
 # coding=utf-8
-"""Define a function for A* search algorithm, and an ABC for a compatible search node."""
+"""Search function and node ABC for implementing the A* search algorithm."""
 
 # Standard library imports:
 import abc
