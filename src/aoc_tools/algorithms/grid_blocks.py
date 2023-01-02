@@ -23,5 +23,6 @@ class CellND:
         return hash(tuple(self.coord_map.values()))
 
     def distance(self, other: "CellND") -> int:
-        """Compute the Manhattan distance between this and another Cell3D."""
-        return sum(other.coord_map[c] - self.coord_map[c] for c in self.coord_map.keys())
+        """Compute the Manhattan distance between this and another CellND."""
+        return sum(abs(other.coord_map[c] - self.coord_map[c])
+                   for c in self.coord_map.keys())
