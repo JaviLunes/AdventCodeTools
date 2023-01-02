@@ -1,5 +1,5 @@
 # coding=utf-8
-"""Define a function for A* search algorithm, and an ABC for a compatible search node."""
+"""Search function and node ABC for implementing the A* search algorithm."""
 
 # Standard library imports:
 import abc
@@ -7,17 +7,17 @@ import heapq
 from typing import Callable, Iterable, Optional
 
 
-class Node(metaclass=abc.ABCMeta):
+class ASNode(metaclass=abc.ABCMeta):
     """ABC for an individual node in an A* search algorithm."""
     __slots__ = ["_parent"]
 
-    def __init__(self, parent: "Node" = None):
+    def __init__(self, parent: "ASNode" = None):
         self._parent = parent
 
     def __hash__(self) -> int:
         return hash(self.id)
 
-    def __lt__(self, other: "Node") -> bool:
+    def __lt__(self, other: "ASNode") -> bool:
         return self.f < other.f
 
     def __repr__(self) -> str:
@@ -26,29 +26,29 @@ class Node(metaclass=abc.ABCMeta):
     @property
     @abc.abstractmethod
     def id(self) -> str:
-        """Provide a string identifier unique to this Node."""
+        """Provide a string identifier unique to this ASNode."""
         raise NotImplementedError
 
     @property
     @abc.abstractmethod
     def g(self) -> int:
-        """Compute the cost for reaching this Node from the search start point."""
+        """Compute the cost for reaching this ASNode from the search start point."""
         raise NotImplementedError
 
     @property
     @abc.abstractmethod
     def h(self) -> int:
-        """Estimate the cost for reaching the search goal from this Node."""
+        """Estimate the cost for reaching the search goal from this ASNode."""
         raise NotImplementedError
 
     @abc.abstractmethod
-    def get_successors(self) -> Iterable["Node"]:
-        """List all nodes to search that are directly reachable from this Node."""
+    def get_successors(self) -> Iterable["ASNode"]:
+        """List all nodes to search that are directly reachable from this ASNode."""
         raise NotImplementedError
 
     @property
-    def parent(self) -> Optional["Node"]:
-        """Provide the parent node of this Node (or None, if no parent)."""
+    def parent(self) -> Optional["ASNode"]:
+        """Provide the parent node of this ASNode (or None, if no parent)."""
         return self._parent
 
     @property
@@ -57,14 +57,14 @@ class Node(metaclass=abc.ABCMeta):
         return self.g + self.h
 
     @property
-    def lineage(self) -> list["Node"]:
-        """List this Node and its recursive parents (if any)."""
+    def lineage(self) -> list["ASNode"]:
+        """List this ASNode and its recursive parents (if any)."""
         return [self] + (self.parent.lineage if self.parent else [])
 
 
-def a_star_search(start: Node, goal_func: Callable) -> Node:
-    """Find the path of lesser cost for reaching a goal objective from a start Node."""
-    # Build lists / queues / min heaps / sets / cost maps:
+def a_star_search(start: ASNode, goal_func: Callable) -> ASNode:
+    """Find the path of lesser cost for reaching a goal objective from a start ASNode."""
+    # Build search registers:
     pending_nodes = [start]
     visited_nodes = set()
     best_g_costs = {start.id: start.g}
@@ -76,16 +76,16 @@ def a_star_search(start: Node, goal_func: Callable) -> Node:
             return q_node
         if q_node in visited_nodes:
             continue  # Skip node if its location was already visited.
-        # For each possible neighbour node:
+        # For each possible successor node:
         for s_node in q_node.get_successors():
             if s_node in visited_nodes:
-                continue  # Skip successor if its location was already visited:
+                continue  # Skip successor if it was already visited:
             if s_node.g >= best_g_costs.get(s_node.id, 99999):
-                continue  # Skip successor if worse than its location's best cost.
+                continue  # Skip successor if worse than its hash's best cost.
             # Register successor node for future checking:
             heapq.heappush(pending_nodes, s_node)
             best_g_costs[s_node.id] = s_node.g
-        # Register the parent node's location as already seen:
+        # Register the original node as already seen:
         visited_nodes.add(q_node)
     # If code reaches this point, the goal was never reached:
-    raise ValueError("The search could not reach the end Node.")
+    raise ValueError("The search could not reach the end ASNode.")
