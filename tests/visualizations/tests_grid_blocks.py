@@ -28,6 +28,7 @@ class BaseFeaturesTests(unittest.TestCase):
         plotter = GridNDPlotter(cells=cells)
         fig = plotter._plot_hv(h_coord="x", v_coord="y")
         self.assertIsInstance(fig, Figure)
+        fig.show()
         plt.close(fig)
 
     def test_non_matching_empty_value(self):
@@ -36,6 +37,7 @@ class BaseFeaturesTests(unittest.TestCase):
         plotter = GridNDPlotter(cells=cells, empty_value=-10)
         fig = plotter._plot_hv(h_coord="x", v_coord="y")
         self.assertIsInstance(fig, Figure)
+        fig.show()
         plt.close(fig)
 
     def test_string_cell_values(self):
@@ -45,6 +47,7 @@ class BaseFeaturesTests(unittest.TestCase):
         plotter = GridNDPlotter(cells=cells, empty_value=value_map[0])
         fig = plotter._plot_hv(h_coord="x", v_coord="y")
         self.assertIsInstance(fig, Figure)
+        fig.show()
         plt.close(fig)
 
     def test_custom_colour_palette(self):
@@ -53,6 +56,7 @@ class BaseFeaturesTests(unittest.TestCase):
         plotter = GridNDPlotter(cells=cells, palette=self.palette)
         fig = plotter._plot_hv(h_coord="x", v_coord="y")
         self.assertIsInstance(fig, Figure)
+        fig.show()
         plt.close(fig)
 
     def test_hidden_legend(self):
@@ -61,6 +65,7 @@ class BaseFeaturesTests(unittest.TestCase):
         plotter = GridNDPlotter(cells=cells, legend=False)
         fig = plotter._plot_hv(h_coord="x", v_coord="y")
         self.assertIsInstance(fig, Figure)
+        fig.show()
         plt.close(fig)
 
     def test_different_coord_names(self):
@@ -69,6 +74,7 @@ class BaseFeaturesTests(unittest.TestCase):
         plotter = GridNDPlotter(cells=cells)
         fig = plotter._plot_hv(h_coord="n", v_coord="m")
         self.assertIsInstance(fig, Figure)
+        fig.show()
         plt.close(fig)
 
 
@@ -86,6 +92,7 @@ class Grid2DTests(unittest.TestCase):
         plotter = Grid2DPlotter(cells=cells)
         fig = plotter.plot_xy()
         self.assertIsInstance(fig, Figure)
+        fig.show()
         plt.close(fig)
 
 
@@ -114,6 +121,7 @@ class Grid3DTests(unittest.TestCase):
         plotter = Grid3DPlotter(cells=cells)
         for fig in plotter.plot_along_x():
             self.assertIsInstance(fig, Figure)
+            fig.show()
             plt.close(fig)
 
     def test_plot_along_y_level(self):
@@ -122,6 +130,7 @@ class Grid3DTests(unittest.TestCase):
         plotter = Grid3DPlotter(cells=cells)
         for fig in plotter.plot_along_y():
             self.assertIsInstance(fig, Figure)
+            fig.show()
             plt.close(fig)
 
     def test_plot_along_z_level(self):
@@ -130,4 +139,5 @@ class Grid3DTests(unittest.TestCase):
         plotter = Grid3DPlotter(cells=cells)
         for fig in plotter.plot_along_z():
             self.assertIsInstance(fig, Figure)
+            fig.show()
             plt.close(fig)
