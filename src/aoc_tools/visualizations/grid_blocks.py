@@ -37,7 +37,6 @@ class GridNDPlotter:
         self._legend = legend
         self._title = title
         self._empty_value = empty_value
-        self._values = sorted({cell.value for cell in cells} | {empty_value})
         self._limits = self._get_coord_limits()
         self._palette = self._get_palette(palette=palette)
 
@@ -53,7 +52,8 @@ class GridNDPlotter:
     def _get_palette(self, palette: dict[Scalar, Colour] = None) -> ValuePalette:
         """Create a new ValuePalette instance from provided Palette or known values."""
         if palette is None:
-            return ValuePalette.from_values(possible_values=self._values)
+            known_values = sorted({c.value for c in self._cells}) + [self._empty_value]
+            return ValuePalette.from_values(possible_values=known_values)
         return ValuePalette(value_map=palette)
 
     def _plot_hv(self, h_coord: str, v_coord: str, **other_coord_values: int) -> Figure:
@@ -138,13 +138,11 @@ class GridNDPlotter:
 
     def _draw_legend(self, legend_axe: Axes):
         """Add a legend with drawn cell values."""
-        sorted_values = [v for v in self._palette.values if v in self._values]
-        patches = [self._build_legend_patch(value=value) for value in sorted_values]
+        patches = [self._build_legend_patch(value=v) for v in self._palette.values]
         font_properties = FontProperties(weight="bold", size=10)
         legend_axe.legend(
-            handles=patches, labels=sorted_values, ncols=min(6, len(sorted_values)),
-            loc="center",
-            prop=font_properties, framealpha=1,
+            handles=patches, labels=self._palette.values,  loc="center",
+            ncols=min(6, len(self._palette.values)), prop=font_properties, framealpha=1,
             frameon=True, fancybox=False, edgecolor="black")
 
     def _build_legend_patch(self, value) -> Patch:
