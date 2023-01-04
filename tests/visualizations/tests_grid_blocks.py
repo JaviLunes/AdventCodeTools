@@ -4,6 +4,10 @@
 # Standard library imports:
 import unittest
 
+# Third party imports:
+import matplotlib.pyplot as plt
+from matplotlib.figure import Figure
+
 # Local application imports:
 from aoc_tools.visualizations.grid_blocks import CellND, GridNDPlotter
 from aoc_tools.visualizations.grid_blocks import Grid2DPlotter, Grid3DPlotter
@@ -22,38 +26,50 @@ class BaseFeaturesTests(unittest.TestCase):
         """Assert a valid plot can be built providing only the list of cells."""
         cells = [CellND(x=x, y=y, value=v) for x, y, v in self.cell_params]
         plotter = GridNDPlotter(cells=cells)
-        plotter._plot_hv(h_coord="x", v_coord="y")
+        fig = plotter._plot_hv(h_coord="x", v_coord="y")
+        self.assertIsInstance(fig, Figure)
+        plt.close(fig)
 
     def test_non_matching_empty_value(self):
         """Assert the default empty value can be replaced with a custom one."""
         cells = [CellND(x=x, y=y, value=v) for x, y, v in self.cell_params]
         plotter = GridNDPlotter(cells=cells, empty_value=-10)
-        plotter._plot_hv(h_coord="x", v_coord="y")
+        fig = plotter._plot_hv(h_coord="x", v_coord="y")
+        self.assertIsInstance(fig, Figure)
+        plt.close(fig)
 
     def test_string_cell_values(self):
         """Assert cells with string values can be successfully plotted."""
         value_map = {0: "Alpha", 1: "Beta", 2: "Gamma"}
         cells = [CellND(x=x, y=y, value=value_map[v]) for x, y, v in self.cell_params]
         plotter = GridNDPlotter(cells=cells, empty_value=value_map[0])
-        plotter._plot_hv(h_coord="x", v_coord="y")
+        fig = plotter._plot_hv(h_coord="x", v_coord="y")
+        self.assertIsInstance(fig, Figure)
+        plt.close(fig)
 
     def test_custom_colour_palette(self):
         """Assert the default value-colour map can be replaced with a custom one."""
         cells = [CellND(x=x, y=y, value=v) for x, y, v in self.cell_params]
         plotter = GridNDPlotter(cells=cells, palette=self.palette)
-        plotter._plot_hv(h_coord="x", v_coord="y")
+        fig = plotter._plot_hv(h_coord="x", v_coord="y")
+        self.assertIsInstance(fig, Figure)
+        plt.close(fig)
 
     def test_hidden_legend(self):
         """Assert the legend can be hidden, and the Axes bbox expands accordingly."""
         cells = [CellND(x=x, y=y, value=v) for x, y, v in self.cell_params]
         plotter = GridNDPlotter(cells=cells, legend=False)
-        plotter._plot_hv(h_coord="x", v_coord="y")
+        fig = plotter._plot_hv(h_coord="x", v_coord="y")
+        self.assertIsInstance(fig, Figure)
+        plt.close(fig)
 
     def test_different_coord_names(self):
         """Assert the names of the HV coordinates may be different from the usual XY."""
         cells = [CellND(n=x, m=y, value=v) for x, y, v in self.cell_params]
         plotter = GridNDPlotter(cells=cells)
-        plotter._plot_hv(h_coord="n", v_coord="m")
+        fig = plotter._plot_hv(h_coord="n", v_coord="m")
+        self.assertIsInstance(fig, Figure)
+        plt.close(fig)
 
 
 class Grid2DTests(unittest.TestCase):
@@ -68,7 +84,9 @@ class Grid2DTests(unittest.TestCase):
         """Assert the X and Y coordinates are used as HV plot coordinates."""
         cells = [CellND(x=x, y=y, value=v) for x, y, v in self.cell_params]
         plotter = Grid2DPlotter(cells=cells)
-        plotter.plot_xy()
+        fig = plotter.plot_xy()
+        self.assertIsInstance(fig, Figure)
+        plt.close(fig)
 
 
 class Grid3DTests(unittest.TestCase):
@@ -94,16 +112,22 @@ class Grid3DTests(unittest.TestCase):
         """Assert all YZ planes at each X level can be plotted."""
         cells = [CellND(x=x, y=y, z=z, value=v) for x, y, z, v in self.cell_params]
         plotter = Grid3DPlotter(cells=cells)
-        plotter.plot_along_x()
+        for fig in plotter.plot_along_x():
+            self.assertIsInstance(fig, Figure)
+            plt.close(fig)
 
     def test_plot_along_y_level(self):
         """Assert all XZ planes at each Y level can be plotted."""
         cells = [CellND(x=x, y=y, z=z, value=v) for x, y, z, v in self.cell_params]
         plotter = Grid3DPlotter(cells=cells)
-        plotter.plot_along_y()
+        for fig in plotter.plot_along_y():
+            self.assertIsInstance(fig, Figure)
+            plt.close(fig)
 
     def test_plot_along_z_level(self):
         """Assert all XY planes at each Z level can be plotted."""
         cells = [CellND(x=x, y=y, z=z, value=v) for x, y, z, v in self.cell_params]
         plotter = Grid3DPlotter(cells=cells)
-        plotter.plot_along_z()
+        for fig in plotter.plot_along_z():
+            self.assertIsInstance(fig, Figure)
+            plt.close(fig)
