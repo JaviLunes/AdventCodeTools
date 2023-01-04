@@ -44,6 +44,16 @@ class ValuePalette:
             rgb_array[index] = self[value]
         return rgb_array
 
+    @property
+    def colours(self) -> list[RGB]:
+        """List all RGB colours registered for this ValuePalette."""
+        return list(self._palette.values())
+
+    @property
+    def values(self) -> list[Scalar]:
+        """List all values registered for this ValuePalette."""
+        return list(self._palette.keys())
+
     @classmethod
     def from_values(cls, possible_values: list[Scalar], default: Colour = "black") \
             -> "ValuePalette":
