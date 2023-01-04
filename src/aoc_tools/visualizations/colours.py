@@ -32,7 +32,7 @@ class ValuePalette:
         elif isinstance(colour, tuple) and len(colour) == 3:
             if all(isinstance(v, int) and 0 <= v <= 255 for v in colour):
                 return colour[0] / 255, colour[1] / 255, colour[2] / 255
-            elif all(isinstance(v, float) and 0 <= v <= 1 for v in colour):
+            elif all(0 <= v <= 1 for v in colour):
                 return colour
         raise ValueError(f"The colour {colour} could not be translated.")
 
