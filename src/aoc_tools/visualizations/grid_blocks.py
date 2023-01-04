@@ -131,10 +131,11 @@ class GridNDPlotter:
 
     def _draw_legend(self, legend_axe: Axes):
         """Add a legend with drawn cell values."""
-        patches = [self._build_legend_patch(value=value) for value in self._values]
+        sorted_values = [v for v in self._palette.values if v in self._values]
+        patches = [self._build_legend_patch(value=value) for value in sorted_values]
         font_properties = FontProperties(weight="bold", size=10)
         legend_axe.legend(
-            handles=patches, labels=self._values, ncols=min(6, len(self._values)),
+            handles=patches, labels=sorted_values, ncols=min(6, len(sorted_values)),
             loc="center",
             prop=font_properties, framealpha=1,
             frameon=True, fancybox=False, edgecolor="black")
