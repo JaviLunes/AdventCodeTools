@@ -13,11 +13,19 @@ from matplotlib.patches import Patch
 import numpy
 
 # Local application imports:
-from aoc_tools.algorithms.grid_blocks import CellND
 from aoc_tools.visualizations.colours import ValuePalette, Colour
 
 
 Scalar = TypeVar("Scalar", str, int, float)
+
+
+class CellND:
+    """Discrete location in a generic nD gridded region."""
+    __slots__ = ["value", "coord_map"]
+
+    def __init__(self, value: Scalar = None, **coord_values: int):
+        self.value = value
+        self.coord_map = coord_values
 
 
 class GridNDPlotter:
