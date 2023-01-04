@@ -68,6 +68,15 @@ class BaseFeaturesTests(unittest.TestCase):
         fig.show()
         plt.close(fig)
 
+    def test_hidden_title(self):
+        """Assert the title can be hidden, and the Axes bbox expands accordingly."""
+        cells = [CellND(x=x, y=y, value=v) for x, y, v in self.cell_params]
+        plotter = GridNDPlotter(cells=cells, title=False)
+        fig = plotter._plot_hv(h_coord="x", v_coord="y")
+        self.assertIsInstance(fig, Figure)
+        fig.show()
+        plt.close(fig)
+
     def test_different_coord_names(self):
         """Assert the names of the HV coordinates may be different from the usual XY."""
         cells = [CellND(n=x, m=y, value=v) for x, y, v in self.cell_params]
