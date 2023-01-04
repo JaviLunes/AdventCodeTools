@@ -14,7 +14,7 @@ import numpy
 
 # Local application imports:
 from aoc_tools.algorithms.grid_blocks import CellND
-from aoc_tools.visualizations.colours import ValuePalette, RGB
+from aoc_tools.visualizations.colours import ValuePalette, Colour
 
 
 Scalar = TypeVar("Scalar", str, int, float)
@@ -22,9 +22,9 @@ Scalar = TypeVar("Scalar", str, int, float)
 
 class GridNDPlotter:
     """Base class for plotting mosaic-like regions composed of regular cells."""
-    def __init__(self, cells: list[CellND], empty_value: Scalar = 0,
-                 palette: dict[Scalar, str | RGB] = None, legend: bool = True):
-        self._cells = cells
+    def __init__(self, cells: Iterable[CellND], empty_value: Scalar = 0,
+                 palette: dict[Scalar, Colour] = None, legend: bool = True):
+        self._cells = [*cells]
         self._legend = legend
         self._empty_value = empty_value
         self._values = sorted({cell.value for cell in cells} | {empty_value})
@@ -41,13 +41,13 @@ class GridNDPlotter:
             coord_limits.update({c: (min_c, max_c)})
         return coord_limits
 
-    def _build_palette(self, palette: dict[Scalar, str | RGB] = None) -> ValuePalette:
+    def _build_palette(self, palette: dict[Scalar, Colour] = None) -> ValuePalette:
         """Create a new ValuePalette instance from provided Palette or known values."""
         if palette is None:
             return ValuePalette.from_values(possible_values=self._values)
         return ValuePalette(value_map=palette)
 
-    def _plot_hv(self, h_coord: str, v_coord: str, **other_coord_values: int):
+    def _plot_hv(self, h_coord: str, v_coord: str, **other_coord_values: int) -> Figure:
         """Plot the stored cells along an HV plane."""
         fig, axe, legend_axe = self._build_figure_and_axes()
         data_array = self._build_2d_array(h=h_coord, v=v_coord, **other_coord_values)
@@ -58,7 +58,7 @@ class GridNDPlotter:
             self._draw_legend(legend_axe=legend_axe)
         self._draw_title(axe=axe, h=h_coord, v=v_coord, **other_coord_values)
         fig.tight_layout(pad=0.1)
-        plt.show()
+        return fig
 
     def _build_figure_and_axes(self) -> tuple[Figure, Axes, Axes | None]:
         """Create the figure and axes where the data will be plotted."""
@@ -152,24 +152,24 @@ class GridNDPlotter:
 
 class Grid2DPlotter(GridNDPlotter):
     """Create a 2D mosaic-like plot from a list of XY cell objects."""
-    def plot_xy(self):
+    def plot_xy(self) -> Figure:
         """Plot the stored 2D cells in a regular tessellation of squares."""
-        self._plot_hv(h_coord="x", v_coord="y")
+        return self._plot_hv(h_coord="x", v_coord="y")
 
 
 class Grid3DPlotter(GridNDPlotter):
     """Create a 2D mosaic-like plot from a list of XYZ cell objects."""
-    def plot_along_x(self):
+    def plot_along_x(self) -> Iterable[Figure]:
         """Make an YZ tessellation plot at each different X level."""
         for x in range(self._limits["x"][0], self._limits["x"][1] + 1):
-            self._plot_hv(h_coord="y", v_coord="z", x=x)
+            yield self._plot_hv(h_coord="y", v_coord="z", x=x)
 
-    def plot_along_y(self):
+    def plot_along_y(self) -> Iterable[Figure]:
         """Make an XZ tessellation plot at each different Y level."""
         for y in range(self._limits["y"][0], self._limits["y"][1] + 1):
-            self._plot_hv(h_coord="x", v_coord="z", y=y)
+            yield self._plot_hv(h_coord="x", v_coord="z", y=y)
 
-    def plot_along_z(self):
+    def plot_along_z(self) -> Iterable[Figure]:
         """Make an XY tessellation plot at each different Z level."""
         for z in range(self._limits["z"][0], self._limits["z"][1] + 1):
-            self._plot_hv(h_coord="x", v_coord="y", z=z)
+            yield self._plot_hv(h_coord="x", v_coord="y", z=z)
