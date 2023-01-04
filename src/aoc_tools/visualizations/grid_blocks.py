@@ -14,7 +14,7 @@ import numpy
 
 # Local application imports:
 from aoc_tools.algorithms.grid_blocks import CellND
-from aoc_tools.visualizations.colours import ValuePalette, RGB
+from aoc_tools.visualizations.colours import ValuePalette, Colour
 
 
 Scalar = TypeVar("Scalar", str, int, float)
@@ -22,9 +22,9 @@ Scalar = TypeVar("Scalar", str, int, float)
 
 class GridNDPlotter:
     """Base class for plotting mosaic-like regions composed of regular cells."""
-    def __init__(self, cells: list[CellND], empty_value: Scalar = 0,
-                 palette: dict[Scalar, str | RGB] = None, legend: bool = True):
-        self._cells = cells
+    def __init__(self, cells: Iterable[CellND], empty_value: Scalar = 0,
+                 palette: dict[Scalar, Colour] = None, legend: bool = True):
+        self._cells = [*cells]
         self._legend = legend
         self._empty_value = empty_value
         self._values = sorted({cell.value for cell in cells} | {empty_value})
@@ -41,7 +41,7 @@ class GridNDPlotter:
             coord_limits.update({c: (min_c, max_c)})
         return coord_limits
 
-    def _build_palette(self, palette: dict[Scalar, str | RGB] = None) -> ValuePalette:
+    def _build_palette(self, palette: dict[Scalar, Colour] = None) -> ValuePalette:
         """Create a new ValuePalette instance from provided Palette or known values."""
         if palette is None:
             return ValuePalette.from_values(possible_values=self._values)
