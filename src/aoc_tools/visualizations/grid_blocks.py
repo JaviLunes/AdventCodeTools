@@ -38,20 +38,19 @@ class GridNDPlotter:
         self._title = title
         self._empty_value = empty_value
         self._values = sorted({cell.value for cell in cells} | {empty_value})
-        self._limits = self._build_coord_limits()
-        self._palette = self._build_palette(palette=palette)
+        self._limits = self._get_coord_limits()
+        self._palette = self._get_palette(palette=palette)
 
-    def _build_coord_limits(self) -> dict[str, tuple[int, ...]]:
+    def _get_coord_limits(self) -> dict[str, tuple[int, ...]]:
         """Find the lowest and highest values of the stored cells' coordinates."""
         coord_limits = {}
         coordinates = self._cells[0].coord_map.keys()
         for c in coordinates:
-            sorted_c = sorted(self._cells, key=lambda cell: cell.coord_map[c])
-            min_c, max_c = sorted_c[0].coord_map[c], sorted_c[-1].coord_map[c]
-            coord_limits.update({c: (min_c, max_c)})
+            c_values = {cell.coord_map[c] for cell in self._cells}
+            coord_limits.update({c: (min(c_values), max(c_values))})
         return coord_limits
 
-    def _build_palette(self, palette: dict[Scalar, Colour] = None) -> ValuePalette:
+    def _get_palette(self, palette: dict[Scalar, Colour] = None) -> ValuePalette:
         """Create a new ValuePalette instance from provided Palette or known values."""
         if palette is None:
             return ValuePalette.from_values(possible_values=self._values)
