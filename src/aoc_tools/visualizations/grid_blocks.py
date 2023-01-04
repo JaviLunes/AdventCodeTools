@@ -59,7 +59,7 @@ class GridNDPlotter:
     def _plot_hv(self, h_coord: str, v_coord: str, **other_coord_values: int) -> Figure:
         """Plot the stored cells along an HV plane."""
         fig, axe, legend_axe = self._build_figure_and_axes()
-        data_array = self._build_2d_array(h=h_coord, v=v_coord, **other_coord_values)
+        data_array = self._build_array(h=h_coord, v=v_coord, **other_coord_values)
         self._draw_grid_values(axe=axe, data_array=data_array)
         self._draw_grid_borders(axe=axe)
         self._draw_labels(axe=axe, h=h_coord, v=v_coord)
@@ -80,14 +80,11 @@ class GridNDPlotter:
             legend_axe = None
         return fig, axe, legend_axe
 
-    def _build_2d_array(self, h: str, v: str, **other_coord_values: int):
+    def _build_array(self, h: str, v: str, **other_coord_values: int) -> numpy.ndarray:
         """Prepare a 2D array with values of cells inside the target HV plane."""
         # Build 2D array of empty values:
-        value_type = type(self._cells[0].value)
-        if value_type == str:
-            value_type = object
         shape = self._build_hv_shape(h=h, v=v)
-        data_array = numpy.full(shape, fill_value=self._empty_value, dtype=value_type)
+        data_array = numpy.full(shape, fill_value=self._empty_value, dtype=self.dtype)
         # Add target cells' values to array:
         target_cells = self._build_target_cells(**other_coord_values)
         hv_value_map = self._build_hv_value_map(cells=target_cells, h=h, v=v)
@@ -157,6 +154,12 @@ class GridNDPlotter:
         other_levels = f" at {', '.join(other_levels)}" if other_levels else ""
         label = f"{hv_plane}{other_levels}"
         axe.set_title(label, loc="center", fontsize=12, fontweight="bold")
+
+    @property
+    def dtype(self) -> type:
+        """Data type of the stored cells."""
+        dtype = type(self._cells[0].value)
+        return dtype if dtype != str else object
 
 
 class Grid2DPlotter(GridNDPlotter):
