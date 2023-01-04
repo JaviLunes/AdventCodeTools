@@ -17,11 +17,12 @@ Colour = str | RGB | RGB255
 
 class ValuePalette:
     """Map scalar values to specific RGB colours."""
-    def __init__(self, value_map: dict[Scalar, Colour]):
+    def __init__(self, value_map: dict[Scalar, Colour], default: Colour = "black"):
         self._palette = {v: self._translate_colour(c) for v, c in value_map.items()}
+        self._default = self._translate_colour(colour=default)
 
     def __getitem__(self, value: Scalar) -> RGB:
-        return self._palette[value]
+        return self._palette.get(value, self._default)
 
     @staticmethod
     def _translate_colour(colour: Colour) -> RGB:
@@ -40,12 +41,13 @@ class ValuePalette:
         shape = (*value_array.shape, 3)
         rgb_array = numpy.ndarray(shape=shape, dtype=float)
         for index, value in numpy.ndenumerate(value_array):
-            rgb_array[index] = self._palette[value]
+            rgb_array[index] = self[value]
         return rgb_array
 
     @classmethod
-    def from_values(cls, possible_values: list[Scalar]) -> "ValuePalette":
+    def from_values(cls, possible_values: list[Scalar], default: Colour = "black") \
+            -> "ValuePalette":
         """Create a new ValuePalette with default colours from all possible values."""
         colour_list = iter(BASE_COLORS.values())
         palette = {v: next(colour_list) for v in possible_values}
-        return cls(value_map=palette)
+        return cls(value_map=palette, default=default)
