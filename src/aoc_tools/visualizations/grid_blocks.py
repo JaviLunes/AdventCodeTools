@@ -23,9 +23,11 @@ Scalar = TypeVar("Scalar", str, int, float)
 class GridNDPlotter:
     """Base class for plotting mosaic-like regions composed of regular cells."""
     def __init__(self, cells: Iterable[CellND], empty_value: Scalar = 0,
-                 palette: dict[Scalar, Colour] = None, legend: bool = True):
+                 palette: dict[Scalar, Colour] = None, legend: bool = True,
+                 title: bool = True):
         self._cells = [*cells]
         self._legend = legend
+        self._title = title
         self._empty_value = empty_value
         self._values = sorted({cell.value for cell in cells} | {empty_value})
         self._limits = self._build_coord_limits()
@@ -56,7 +58,8 @@ class GridNDPlotter:
         self._draw_labels(axe=axe, h=h_coord, v=v_coord)
         if self._legend:
             self._draw_legend(legend_axe=legend_axe)
-        self._draw_title(axe=axe, h=h_coord, v=v_coord, **other_coord_values)
+        if self._title:
+            self._draw_title(axe=axe, h=h_coord, v=v_coord, **other_coord_values)
         fig.tight_layout(pad=0.1)
         return fig
 

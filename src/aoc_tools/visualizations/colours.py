@@ -48,6 +48,6 @@ class ValuePalette:
     def from_values(cls, possible_values: list[Scalar], default: Colour = "black") \
             -> "ValuePalette":
         """Create a new ValuePalette with default colours from all possible values."""
-        colour_list = iter(BASE_COLORS.values())
+        colour_list = (tuple(map(float, c)) for c in BASE_COLORS.values())
         palette = {v: next(colour_list) for v in possible_values}
         return cls(value_map=palette, default=default)
