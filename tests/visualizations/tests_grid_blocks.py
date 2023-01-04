@@ -86,6 +86,37 @@ class BaseFeaturesTests(unittest.TestCase):
         fig.show()
         plt.close(fig)
 
+    def test_annotations_in_cells(self):
+        """Assert that annotation texts defined in cells are drawn in the plot."""
+        cells = [CellND(x=x, y=y, value=v, annotation=f"{x},{y}")
+                 for x, y, v in self.cell_params]
+        plotter = GridNDPlotter(cells=cells)
+        fig = plotter._plot_hv(h_coord="x", v_coord="y")
+        self.assertIsInstance(fig, Figure)
+        fig.show()
+        plt.close(fig)
+
+    def test_annotations_in_some_cells(self):
+        """Assert that annotation texts defined in cells are drawn in the plot."""
+        cells = [CellND(x=x, y=y, value=v, annotation=f"{x},{y}" if v == 2 else "")
+                 for x, y, v in self.cell_params]
+        plotter = GridNDPlotter(cells=cells)
+        fig = plotter._plot_hv(h_coord="x", v_coord="y")
+        self.assertIsInstance(fig, Figure)
+        fig.show()
+        plt.close(fig)
+
+    def test_annotations_with_custom_kwargs(self):
+        """Assert that drawn annotations use the provided kwargs."""
+        cells = [CellND(x=x, y=y, value=v, annotation=f"{x},{y}")
+                 for x, y, v in self.cell_params]
+        annotations_kwargs = dict(size=10, color="white", ha="left", va="top")
+        plotter = GridNDPlotter(cells=cells, annotations_kwargs=annotations_kwargs)
+        fig = plotter._plot_hv(h_coord="x", v_coord="y")
+        self.assertIsInstance(fig, Figure)
+        fig.show()
+        plt.close(fig)
+
 
 class Grid2DTests(unittest.TestCase):
     def setUp(self) -> None:
