@@ -3,21 +3,26 @@
 
 # Standard library imports:
 import abc
+from collections.abc import Callable, Hashable, Iterable
 import heapq
-from typing import Callable, Iterable, Optional
+from typing import TypeVar
+
+# Define custom types:
+Node = TypeVar("Node", bound="ASNode")
+GoalFunc = Callable[[Node], bool]
 
 
 class ASNode(metaclass=abc.ABCMeta):
     """ABC for an individual node in an A* search algorithm."""
     __slots__ = ["_parent"]
 
-    def __init__(self, parent: "ASNode" = None):
+    def __init__(self: Node, parent: Node = None):
         self._parent = parent
 
     def __hash__(self) -> int:
         return hash(self.id)
 
-    def __lt__(self, other: "ASNode") -> bool:
+    def __lt__(self: Node, other: Node) -> bool:
         return self.f < other.f
 
     def __repr__(self) -> str:
@@ -25,8 +30,8 @@ class ASNode(metaclass=abc.ABCMeta):
 
     @property
     @abc.abstractmethod
-    def id(self) -> str:
-        """Provide a string identifier unique to this ASNode."""
+    def id(self) -> Hashable:
+        """Provide a hashable identifier unique to this ASNode."""
         raise NotImplementedError
 
     @property
@@ -42,12 +47,12 @@ class ASNode(metaclass=abc.ABCMeta):
         raise NotImplementedError
 
     @abc.abstractmethod
-    def get_successors(self) -> Iterable["ASNode"]:
+    def get_successors(self: Node) -> Iterable[Node]:
         """List all nodes to search that are directly reachable from this ASNode."""
         raise NotImplementedError
 
     @property
-    def parent(self) -> Optional["ASNode"]:
+    def parent(self: Node) -> Node | None:
         """Provide the parent node of this ASNode (or None, if no parent)."""
         return self._parent
 
@@ -57,13 +62,13 @@ class ASNode(metaclass=abc.ABCMeta):
         return self.g + self.h
 
     @property
-    def lineage(self) -> list["ASNode"]:
+    def lineage(self: Node) -> list[Node]:
         """List this ASNode and its recursive parents (if any)."""
         return [self] + (self.parent.lineage if self.parent else [])
 
 
-def a_star_search(start: ASNode, goal_func: Callable) -> ASNode:
-    """Find the path of lesser cost for reaching a goal objective from a start ASNode."""
+def a_star_search(start: Node, goal_func: GoalFunc) -> Node:
+    """Find the path of lesser cost for reaching a goal objective from a start node."""
     # Build search registers:
     pending_nodes = [start]
     visited_nodes = set()
@@ -72,7 +77,7 @@ def a_star_search(start: ASNode, goal_func: Callable) -> ASNode:
     while pending_nodes:
         q_node = heapq.heappop(pending_nodes)
         # Stop if the goal is reached:
-        if goal_func(node=q_node):
+        if goal_func(q_node):
             return q_node
         if q_node in visited_nodes:
             continue  # Skip node if its location was already visited.
@@ -88,4 +93,4 @@ def a_star_search(start: ASNode, goal_func: Callable) -> ASNode:
         # Register the original node as already seen:
         visited_nodes.add(q_node)
     # If code reaches this point, the goal was never reached:
-    raise ValueError("The search could not reach the end ASNode.")
+    raise ValueError("The search could not reach the goal node.")

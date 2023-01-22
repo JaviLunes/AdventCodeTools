@@ -3,8 +3,10 @@
 
 # Standard library imports:
 import abc
+from collections.abc import Hashable
 from typing import TypeVar
 
+# Define custom types:
 Node = TypeVar("Node", bound="FNode")
 
 
@@ -14,22 +16,22 @@ class FNode(metaclass=abc.ABCMeta):
         return hash(self.id)
 
     def __repr__(self) -> str:
-        return self.id
+        return str(self.id)
 
     @property
     @abc.abstractmethod
-    def id(self) -> str:
-        """Provide a string identifier unique to this FNode."""
+    def id(self) -> Hashable:
+        """Provide a hashable identifier unique to this FNode."""
         raise NotImplementedError
 
     @abc.abstractmethod
-    def get_successors(self) -> set["FNode"]:
+    def get_successors(self: Node) -> set[Node]:
         """List all nodes to search that are directly reachable from this FNode."""
         raise NotImplementedError
 
 
 def full_search(start: Node) -> set[Node]:
-    """Find all nodes that can be reached from a start FNode."""
+    """Find all nodes that can be reached from a start node."""
     # Build search registers:
     pending_nodes = [start]
     visited_nodes = set()
