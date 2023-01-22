@@ -5,6 +5,7 @@
 import abc
 from collections.abc import Callable, Hashable, Iterable
 import heapq
+import math
 from typing import TypeVar
 
 # Define custom types:
@@ -85,7 +86,7 @@ def a_star_search(start: Node, goal_func: GoalFunc) -> Node:
         for s_node in q_node.get_successors():
             if s_node in visited_nodes:
                 continue  # Skip successor if it was already visited:
-            if s_node.g >= best_g_costs.get(s_node.id, 99999):
+            if s_node.g >= best_g_costs.get(s_node.id, math.inf):
                 continue  # Skip successor if worse than its hash's best cost.
             # Register successor node for future checking:
             heapq.heappush(pending_nodes, s_node)
