@@ -12,17 +12,17 @@ Node = TypeVar("Node", bound="FNode")
 
 class FNode(metaclass=abc.ABCMeta):
     """ABC for an individual node in a Full search algorithm."""
+    __slots__ = ["_id", "_hash"]
+
+    def __init__(self: Node, id_: Hashable, hash_: int):
+        self._id = id_
+        self._hash = hash_
+
     def __hash__(self) -> int:
-        return hash(self.id)
+        return self._hash
 
     def __repr__(self) -> str:
-        return str(self.id)
-
-    @property
-    @abc.abstractmethod
-    def id(self) -> Hashable:
-        """Provide a hashable identifier unique to this FNode."""
-        raise NotImplementedError
+        return repr(self._id)
 
     @abc.abstractmethod
     def get_successors(self: Node) -> set[Node]:
