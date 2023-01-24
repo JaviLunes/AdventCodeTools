@@ -20,15 +20,17 @@ YEAR = 3057
 class FilePathTests(unittest.TestCase):
     def setUp(self) -> None:
         """Define tools to be tested."""
-        self.builder = AdventBuilder(year=YEAR, puzzle_names=PUZZLE_NAMES,
-                                     source_path=PATH_SOURCE, tests_path=PATH_TESTS)
+        builder = AdventBuilder(year=YEAR, puzzle_names=PUZZLE_NAMES,
+                                source_path=PATH_SOURCE, tests_path=PATH_TESTS)
+        self.paths_map = {day: builder._build_file_paths(day=day)
+                          for day in range(1, len(PUZZLE_NAMES) + 1)}
 
     def test_input_path(self):
         """The path for the input file must match the expected path pattern."""
         for i in range(len(PUZZLE_NAMES)):
             day_path = DAILY_PATH.substitute(year=YEAR, day=i + 1)
             expected_path = PATH_SOURCE / day_path / FILE_INPUT
-            file_path, _ = self.builder._prepare_input(day=i + 1)
+            file_path = self.paths_map[i + 1][0]
             self.assertEqual(expected_path, file_path)
 
     def test_solution_path(self):
@@ -36,7 +38,7 @@ class FilePathTests(unittest.TestCase):
         for i in range(len(PUZZLE_NAMES)):
             day_path = DAILY_PATH.substitute(year=YEAR, day=i + 1)
             expected_path = PATH_SOURCE / day_path / FILE_SOLUTION
-            file_path, _ = self.builder._prepare_solution(day=i + 1)
+            file_path = self.paths_map[i + 1][1]
             self.assertEqual(expected_path, file_path)
 
     def test_tools_path(self):
@@ -44,14 +46,14 @@ class FilePathTests(unittest.TestCase):
         for i in range(len(PUZZLE_NAMES)):
             day_path = DAILY_PATH.substitute(year=YEAR, day=i + 1)
             expected_path = PATH_SOURCE / day_path / FILE_TOOLS
-            file_path, _ = self.builder._prepare_tools(day=i + 1)
+            file_path = self.paths_map[i + 1][2]
             self.assertEqual(expected_path, file_path)
 
     def test_tests_path(self):
         """The path for the tests file must match the expected path pattern."""
         for i in range(len(PUZZLE_NAMES)):
             expected_path = PATH_TESTS / FILE_TESTS.substitute(day=i + 1)
-            file_path, _ = self.builder._prepare_tests(day=i + 1)
+            file_path = self.paths_map[i + 1][3]
             self.assertEqual(expected_path, file_path)
 
 
@@ -60,8 +62,9 @@ class InputTemplateTests(unittest.TestCase):
         """Define tools to be tested."""
         builder = AdventBuilder(year=YEAR, puzzle_names=PUZZLE_NAMES,
                                 source_path=PATH_SOURCE, tests_path=PATH_TESTS)
-        self.lines_map = {day: builder._prepare_input(day=day)[1]
-                          for day in range(1, len(PUZZLE_NAMES) + 1)}
+        self.lines_map = {
+            day: builder._prepare_file_lines(file_path=Path(FILE_INPUT), day=day)
+            for day in range(1, len(PUZZLE_NAMES) + 1)}
 
     def test_empty_file(self):
         """The input file is created empty."""
@@ -76,8 +79,9 @@ class SolutionTemplateTests(unittest.TestCase):
         """Define tools to be tested."""
         builder = AdventBuilder(year=YEAR, puzzle_names=PUZZLE_NAMES,
                                 source_path=PATH_SOURCE, tests_path=PATH_TESTS)
-        self.lines_map = {day: builder._prepare_solution(day=day)[1]
-                          for day in range(1, len(PUZZLE_NAMES) + 1)}
+        self.lines_map = {
+            day: builder._prepare_file_lines(file_path=Path(FILE_SOLUTION), day=day)
+            for day in range(1, len(PUZZLE_NAMES) + 1)}
 
     def test_puzzle_name_on_module_docstring(self):
         """The module docstring must include the full name of the target puzzle."""
@@ -116,13 +120,31 @@ class SolutionTemplateTests(unittest.TestCase):
             self.assertIn(f"{day_path_rel}/{FILE_INPUT}", file_line)
 
 
+class ToolTemplateTests(unittest.TestCase):
+    def setUp(self) -> None:
+        """Define tools to be tested."""
+        builder = AdventBuilder(year=YEAR, puzzle_names=PUZZLE_NAMES,
+                                source_path=PATH_SOURCE, tests_path=PATH_TESTS)
+        self.lines_map = {
+            day: builder._prepare_file_lines(file_path=Path(FILE_TOOLS), day=day)
+            for day in range(1, len(PUZZLE_NAMES) + 1)}
+
+    def test_puzzle_name_on_module_docstring(self):
+        """The module docstring must include the full name of the target puzzle."""
+        for i, puzzle_name in enumerate(PUZZLE_NAMES):
+            file_line = self.lines_map[i + 1][1]
+            self.assertIn(puzzle_name, file_line)
+
+
 class TestsTemplateTests(unittest.TestCase):
     def setUp(self) -> None:
         """Define tools to be tested."""
         builder = AdventBuilder(year=YEAR, puzzle_names=PUZZLE_NAMES,
                                 source_path=PATH_SOURCE, tests_path=PATH_TESTS)
-        self.lines_map = {day: builder._prepare_tests(day=day)[1]
-                          for day in range(1, len(PUZZLE_NAMES) + 1)}
+        self.lines_map = {
+            day: builder._prepare_file_lines(
+                file_path=Path(FILE_TESTS.substitute(day=day)), day=day)
+            for day in range(1, len(PUZZLE_NAMES) + 1)}
 
     def test_puzzle_name_on_module_docstring(self):
         """The module docstring must include the full name of the target puzzle."""
@@ -139,18 +161,3 @@ class TestsTemplateTests(unittest.TestCase):
             lines_end = file_lines.index("\n", lines_start)
             for file_line in file_lines[lines_start:lines_end]:
                 self.assertIn(expected_import, file_line)
-
-
-class ToolTemplateTests(unittest.TestCase):
-    def setUp(self) -> None:
-        """Define tools to be tested."""
-        builder = AdventBuilder(year=YEAR, puzzle_names=PUZZLE_NAMES,
-                                source_path=PATH_SOURCE, tests_path=PATH_TESTS)
-        self.lines_map = {day: builder._prepare_tools(day=day)[1]
-                          for day in range(1, len(PUZZLE_NAMES) + 1)}
-
-    def test_puzzle_name_on_module_docstring(self):
-        """The module docstring must include the full name of the target puzzle."""
-        for i, puzzle_name in enumerate(PUZZLE_NAMES):
-            file_line = self.lines_map[i + 1][1]
-            self.assertIn(puzzle_name, file_line)

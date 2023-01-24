@@ -1,0 +1,14 @@
+# coding=utf-8
+"""Tests for the &@puzzle_name@& puzzle."""
+
+# Standard library imports:
+import unittest
+
+# Local application imports:
+from &@tools_module@& import ...
+
+
+class ExampleTests(unittest.TestCase):
+    def setUp(self) -> None:
+        """Define objects to be tested."""
+        ...

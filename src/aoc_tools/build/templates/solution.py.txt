@@ -1,0 +1,19 @@
+# coding=utf-8
+"""Compute the solution of the &@puzzle_name@& puzzle."""
+
+# Standard library imports:
+from pathlib import Path
+
+# Third party imports:
+from &@package@& import read_puzzle_input
+
+# Local application imports:
+from &@tools_module@& import ...
+
+
+def compute_solution() -> tuple[int, int]:
+    """Compute the answers for the two parts of this day."""
+    input_file = Path(__file__).parents[1] / "&@input_file_rel@&"
+    lines = read_puzzle_input(input_file=input_file)
+    ...
+    return None, None

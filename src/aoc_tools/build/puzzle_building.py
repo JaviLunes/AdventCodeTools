@@ -9,6 +9,9 @@ from aoc_tools.constants import DAILY_MODULE, DAILY_PATH
 from aoc_tools.constants import FILE_INPUT, FILE_SOLUTION, FILE_TOOLS, FILE_TESTS
 from aoc_tools.constants import PACKAGE_NAME
 
+# Set constants:
+TEMPLATES_PATH = Path(__file__).parent / "templates"
+
 
 class AdventBuilder:
     """Manage template file building tasks."""
@@ -21,10 +24,9 @@ class AdventBuilder:
 
     def build_templates(self, day: int):
         """Built input, tools, solving and tests template files for the provided day."""
-        self._write_file(*self._prepare_input(day=day))
-        self._write_file(*self._prepare_solution(day=day))
-        self._write_file(*self._prepare_tests(day=day))
-        self._write_file(*self._prepare_tools(day=day))
+        for file_path in self._build_file_paths(day=day):
+            file_lines = self._prepare_file_lines(file_path=file_path, day=day)
+            self._write_file(file_path=file_path, lines=file_lines)
 
     def build_all_templates(self):
         """Built input, tools, solving and tests template files for all days."""
@@ -39,73 +41,38 @@ class AdventBuilder:
             with open(file=file_path, mode="w") as file:
                 file.writelines(lines)
 
-    def _prepare_input(self, day: int) -> tuple[Path, list[str]]:
-        """Get file path and content lines for the puzzle input file."""
-        return self.get_source_path_dir(day=day) / FILE_INPUT, [""]
+    def _build_file_paths(self, day: int) -> list[Path]:
+        """Generate absolute paths to all files to be built."""
+        return [self.get_source_path_dir(day=day) / FILE_INPUT,
+                self.get_source_path_dir(day=day) / FILE_SOLUTION,
+                self.get_source_path_dir(day=day) / FILE_TOOLS,
+                self._tests / FILE_TESTS.substitute(day=day)]
 
-    def _prepare_solution(self, day: int) -> tuple[Path, list[str]]:
-        """Get file path and content lines for the puzzle-solving script file."""
-        file_path = self.get_source_path_dir(day=day) / FILE_SOLUTION
-        input_file_rel = f"{file_path.parent.name}/{FILE_INPUT}"
-        tools_module = f"{self.get_source_module(day=day)}.{FILE_TOOLS.split('.')[0]}"
-        lines = [
-            '# coding=utf-8\n',
-            f'"""Compute the solution of the {self._puzzles[day - 1]} puzzle."""\n',
-            '\n',
-            '# Standard library imports:\n',
-            'from pathlib import Path\n',
-            '\n',
-            '# Third party imports:\n',
-            f'from {PACKAGE_NAME} import read_puzzle_input\n',
-            '\n',
-            '# Local application imports:\n',
-            f'from {tools_module} import ...\n',
-            '\n', '\n',
-            'def compute_solution() -> tuple[int, int]:\n',
-            '    """Compute the answers for the two parts of this day."""\n',
-            f'    input_file = Path(__file__).parents[1] / "{input_file_rel}"\n',
-            '    lines = read_puzzle_input(input_file=input_file)\n',
-            '    ...\n',
-            '    return None, None\n']
-        return file_path, lines
-
-    def _prepare_tests(self, day: int) -> tuple[Path, list[str]]:
-        """Get file path and content lines for the tool-testing script file."""
-        file_path = self.get_tests_path_file(day=day)
-        tools_module = f"{self.get_source_module(day=day)}.{FILE_TOOLS.split('.')[0]}"
-        lines = [
-            '# coding=utf-8\n',
-            f'"""Tests for the {self._puzzles[day - 1]} puzzle."""\n',
-            '\n',
-            '# Standard library imports:\n',
-            'import unittest\n',
-            '\n',
-            '# Local application imports:\n',
-            f'from {tools_module} import ...\n',
-            '\n', '\n',
-            'class ExampleTests(unittest.TestCase):\n',
-            '    def setUp(self) -> None:\n',
-            '        """Define objects to be tested."""\n',
-            '        ...\n']
-        return file_path, lines
-
-    def _prepare_tools(self, day: int):
-        """Get file path and content lines for the tool module file."""
-        file_path = self.get_source_path_dir(day=day) / FILE_TOOLS
-        lines = [
-            '# coding=utf-8\n',
-            f'"""Tools used for solving the {self._puzzles[day - 1]} puzzle."""\n',
-            '\n']
-        return file_path, lines
+    def _prepare_file_lines(self, file_path: Path, day: int) -> list[str]:
+        """Generate the file lines to include inside the target file path."""
+        file_name = file_path.name
+        if file_name.startswith("tests"):
+            file_name = "tests.py"
+        template_file = TEMPLATES_PATH / f"{file_name}.txt"
+        with open(template_file, mode="r", encoding="utf-8") as file:
+            lines_str = "|".join(file.readlines())
+        for mark, value in self.get_replace_map(day=day).items():
+            lines_str = lines_str.replace(mark, value)
+        return lines_str.split("|")
 
     def get_source_path_dir(self, day: int) -> Path:
         """Generate an absolute path to the source directory for the target day."""
         return self._source / DAILY_PATH.substitute(year=self.year, day=day)
 
-    def get_source_module(self, day: int) -> str:
-        """Generate a Python import path to the source module for the target day."""
-        return DAILY_MODULE.substitute(year=self.year, day=day)
-
-    def get_tests_path_file(self, day: int) -> Path:
-        """Generate an absolute path to the tests file for the target day."""
-        return self._tests / FILE_TESTS.substitute(day=day)
+    def get_replace_map(self, day: int) -> dict[str, str]:
+        """Map string marks used in the template files to their matching values."""
+        project_path = self.get_source_path_dir(day=day).parent
+        input_path = self.get_source_path_dir(day=day) / FILE_INPUT
+        day_module = DAILY_MODULE.substitute(year=self.year, day=day)
+        return {
+            "&@puzzle_name@&": self._puzzles[day - 1],
+            "&@package@&": PACKAGE_NAME,
+            "&@year@&": str(self.year),
+            "&@day@&": str(day),
+            "&@input_file_rel@&": input_path.relative_to(project_path).as_posix(),
+            "&@tools_module@&": f"{day_module}.{FILE_TOOLS.split('.')[0]}"}

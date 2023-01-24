@@ -1,0 +1,2 @@
+# coding=utf-8
+"""Tools used for solving the &@puzzle_name@& puzzle."""
