@@ -13,7 +13,7 @@ from &@tools_module@& import ...
 
 def compute_solution() -> tuple[int, int]:
     """Compute the answers for the two parts of this day."""
-    input_file = Path(__file__).parents[1] / "&@input_file_rel@&"
+    input_file = &@input_from_solution@&
     lines = read_puzzle_input(input_file=input_file)
     ...
     return None, None

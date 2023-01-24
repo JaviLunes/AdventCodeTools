@@ -21,7 +21,7 @@ class ExampleTests(unittest.TestCase):
 class SolutionTests(unittest.TestCase):
     def setUp(self) -> None:
         """Define objects to be tested."""
-        input_file = Path(__file__).parents[1] / "&@input_file_rel_source@&"
+        input_file = &@input_from_tests@&
         lines = read_puzzle_input(input_file=input_file)
         ...
 

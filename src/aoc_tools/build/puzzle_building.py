@@ -5,9 +5,7 @@
 from pathlib import Path
 
 # Local application imports:
-from aoc_tools.constants import DAILY_MODULE, DAILY_PATH
-from aoc_tools.constants import FILE_INPUT, FILE_SOLUTION, FILE_TOOLS, FILE_TESTS
-from aoc_tools.constants import PACKAGE_NAME
+from aoc_tools.build.paths_manager import PathsManager
 
 # Set constants:
 TEMPLATES_PATH = Path(__file__).parent / "templates"
@@ -15,12 +13,10 @@ TEMPLATES_PATH = Path(__file__).parent / "templates"
 
 class AdventBuilder:
     """Manage template file building tasks."""
-    def __init__(self, year: int, puzzle_names: list[str], source_path: Path,
-                 tests_path: Path):
+    def __init__(self, year: int, puzzle_names: list[str], build_base_path: Path):
         self.year = year
-        self._puzzles = puzzle_names
-        self._source = source_path
-        self._tests = tests_path
+        self.paths = PathsManager(year=year, build_base_path=build_base_path)
+        self.puzzles = puzzle_names
 
     def build_templates(self, day: int):
         """Built input, tools, solving and tests template files for the provided day."""
@@ -30,7 +26,7 @@ class AdventBuilder:
 
     def build_all_templates(self):
         """Built input, tools, solving and tests template files for all days."""
-        for day in range(1, len(self._puzzles) + 1):
+        for day in range(1, len(self.puzzles) + 1):
             self.build_templates(day=day)
 
     @staticmethod
@@ -43,10 +39,10 @@ class AdventBuilder:
 
     def _build_file_paths(self, day: int) -> list[Path]:
         """Generate absolute paths to all files to be built."""
-        return [self.get_source_path_dir(day=day) / FILE_INPUT,
-                self.get_source_path_dir(day=day) / FILE_SOLUTION,
-                self.get_source_path_dir(day=day) / FILE_TOOLS,
-                self._tests / FILE_TESTS.substitute(day=day)]
+        return [self.paths.get_path_input(day=day),
+                self.paths.get_path_solution(day=day),
+                self.paths.get_path_tools(day=day),
+                self.paths.get_path_tests(day=day)]
 
     def _prepare_file_lines(self, file_path: Path, day: int) -> list[str]:
         """Generate the file lines to include inside the target file path."""
@@ -60,21 +56,13 @@ class AdventBuilder:
             lines_str = lines_str.replace(mark, value)
         return lines_str.split("|")
 
-    def get_source_path_dir(self, day: int) -> Path:
-        """Generate an absolute path to the source directory for the target day."""
-        return self._source / DAILY_PATH.substitute(year=self.year, day=day)
-
     def get_replace_map(self, day: int) -> dict[str, str]:
         """Map string marks used in the template files to their matching values."""
-        project_path = self.get_source_path_dir(day=day).parent
-        input_path = self.get_source_path_dir(day=day) / FILE_INPUT
-        input_path_rel_source = input_path.relative_to(self._source.parent).as_posix()
-        day_module = DAILY_MODULE.substitute(year=self.year, day=day)
         return {
-            "&@puzzle_name@&": self._puzzles[day - 1],
-            "&@this_package@&": PACKAGE_NAME,
+            "&@puzzle_name@&": self.puzzles[day - 1],
+            "&@this_package@&": self.paths.this_package,
             "&@year@&": str(self.year),
             "&@day@&": str(day),
-            "&@input_file_rel@&": input_path.relative_to(project_path).as_posix(),
-            "&@input_file_rel_source@&": input_path_rel_source,
-            "&@tools_module@&": f"{day_module}.{FILE_TOOLS.split('.')[0]}"}
+            "&@input_from_solution@&": self.paths.get_path_input_from_solution(),
+            "&@input_from_tests@&": self.paths.get_path_input_from_tests(day=day),
+            "&@tools_module@&": self.paths.get_module_tools(day=day)}
