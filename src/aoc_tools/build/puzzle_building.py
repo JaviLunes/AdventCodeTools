@@ -68,6 +68,7 @@ class AdventBuilder:
         """Map string marks used in the template files to their matching values."""
         project_path = self.get_source_path_dir(day=day).parent
         input_path = self.get_source_path_dir(day=day) / FILE_INPUT
+        input_path_rel_source = input_path.relative_to(self._source.parent).as_posix()
         day_module = DAILY_MODULE.substitute(year=self.year, day=day)
         return {
             "&@puzzle_name@&": self._puzzles[day - 1],
@@ -75,4 +76,5 @@ class AdventBuilder:
             "&@year@&": str(self.year),
             "&@day@&": str(day),
             "&@input_file_rel@&": input_path.relative_to(project_path).as_posix(),
+            "&@input_file_rel_source@&": input_path_rel_source,
             "&@tools_module@&": f"{day_module}.{FILE_TOOLS.split('.')[0]}"}

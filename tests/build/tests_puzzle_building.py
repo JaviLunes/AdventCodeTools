@@ -161,3 +161,12 @@ class TestsTemplateTests(unittest.TestCase):
             lines_end = file_lines.index("\n", lines_start)
             for file_line in file_lines[lines_start:lines_end]:
                 self.assertIn(expected_import, file_line)
+
+    def test_input_file_relative_path(self):
+        """Code the input file path and name using the expected path pattern."""
+        for i in range(len(PUZZLE_NAMES)):
+            file_lines = self.lines_map[i + 1]
+            day_path_rel = Path(DAILY_PATH.substitute(year=YEAR, day=i + 1)).as_posix()
+            line_mark = "        input_file = "
+            file_line = list(filter(lambda a: a.startswith(line_mark), file_lines))[0]
+            self.assertIn(f"src/{day_path_rel}/{FILE_INPUT}", file_line)
