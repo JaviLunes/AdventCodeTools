@@ -10,7 +10,7 @@ from time import time
 import pandas
 
 # Local application imports:
-from aoc_tools.constants import MODULE_DAILY_SCRIPT
+from aoc_tools.constants import DAILY_MODULE, FILE_TOOLS
 from aoc_tools.constants import URL_ADVENT_PUZZLE, URL_GITHUB_SCRIPT
 
 
@@ -50,8 +50,9 @@ class AdventSolver:
     def solve_day(self, day: int) -> tuple[int | None, int | None, str]:
         """Get the solutions and execution time for the target day's puzzles."""
         try:
-            module_name = MODULE_DAILY_SCRIPT.substitute(year=self.year, day=day)
-            module = import_module(module_name)
+            day_module = DAILY_MODULE.substitute(year=self.year, day=day)
+            solution_module = f"{day_module}.{FILE_TOOLS.split('.')[0]}"
+            module = import_module(solution_module)
         except ModuleNotFoundError:
             return None, None, ""
         start = time()
