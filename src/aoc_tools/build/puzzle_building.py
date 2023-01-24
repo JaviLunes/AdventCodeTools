@@ -71,7 +71,7 @@ class AdventBuilder:
         day_module = DAILY_MODULE.substitute(year=self.year, day=day)
         return {
             "&@puzzle_name@&": self._puzzles[day - 1],
-            "&@package@&": PACKAGE_NAME,
+            "&@this_package@&": PACKAGE_NAME,
             "&@year@&": str(self.year),
             "&@day@&": str(day),
             "&@input_file_rel@&": input_path.relative_to(project_path).as_posix(),

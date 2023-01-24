@@ -5,7 +5,7 @@
 from pathlib import Path
 
 # Third party imports:
-from &@package@& import read_puzzle_input
+from &@this_package@& import read_puzzle_input
 
 # Local application imports:
 from &@tools_module@& import ...
