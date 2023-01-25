@@ -1,0 +1,36 @@
+# coding=utf-8
+"""Tests for the &@puzzle_name@& puzzle."""
+
+# Standard library imports:
+from pathlib import Path
+import unittest
+
+# Third party imports:
+from &@this_package@& import read_puzzle_input
+
+# Local application imports:
+from &@tools_module@& import ...
+
+
+class ExampleTests(unittest.TestCase):
+    def setUp(self) -> None:
+        """Define objects to be tested."""
+        ...
+
+
+class SolutionTests(unittest.TestCase):
+    def setUp(self) -> None:
+        """Define objects to be tested."""
+        input_file = &@input_from_tests@&
+        lines = read_puzzle_input(input_file=input_file)
+        ...
+
+    def test_solution_for_part_1(self):
+        """TODO."""
+        ...
+        self.assertEqual(, )
+
+    def test_solution_for_part_2(self):
+        """TODO."""
+        ...
+        self.assertEqual(, )

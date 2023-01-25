@@ -10,8 +10,7 @@ from time import time
 import pandas
 
 # Local application imports:
-from aoc_tools.constants import MODULE_DAILY_SCRIPT
-from aoc_tools.constants import URL_ADVENT_PUZZLE, URL_GITHUB_SCRIPT
+from aoc_tools.build.paths_manager import PathsManager
 
 
 def read_puzzle_input(input_file: Path, encoding: str = "utf-8") -> list[str]:
@@ -23,8 +22,9 @@ def read_puzzle_input(input_file: Path, encoding: str = "utf-8") -> list[str]:
 
 class AdventSolver:
     """Manage puzzle solving tasks."""
-    def __init__(self, year: int, puzzle_names: list[str]):
+    def __init__(self, year: int, puzzle_names: list[str], build_base_path: Path):
         self.year = year
+        self.paths = PathsManager(year=year, build_base_path=build_base_path)
         self.puzzles = puzzle_names
 
     def print_day(self, day: int):
@@ -50,8 +50,8 @@ class AdventSolver:
     def solve_day(self, day: int) -> tuple[int | None, int | None, str]:
         """Get the solutions and execution time for the target day's puzzles."""
         try:
-            module_name = MODULE_DAILY_SCRIPT.substitute(year=self.year, day=day)
-            module = import_module(module_name)
+            solution_module = self.paths.get_module_solution(day=day)
+            module = import_module(solution_module)
         except ModuleNotFoundError:
             return None, None, ""
         start = time()
@@ -200,8 +200,8 @@ class AdventCalendar:
     def _add_hyper_links(self, data_frame: pandas.DataFrame) -> pandas.DataFrame:
         """Add hyperlinks to puzzle pages and to solution scripts in GitHub."""
         for idx, (day, puzzle, stars, s1, s2, timing) in data_frame.iterrows():
-            link_puzzle = URL_ADVENT_PUZZLE.substitute(day=day, year=self._solver.year)
-            link_solution = URL_GITHUB_SCRIPT.substitute(day=day, year=self._solver.year)
+            link_puzzle = self._solver.paths.get_url_advent_puzzle(day=day)
+            link_solution = self._solver.paths.get_url_github_solution(day=day)
             data_frame.loc[idx, "Day"] = f"[{day}]({link_puzzle})"
             data_frame.loc[idx, "Puzzle"] = f"[{puzzle}]({link_puzzle})"
             if s1 != "-" or s2 != "-":
