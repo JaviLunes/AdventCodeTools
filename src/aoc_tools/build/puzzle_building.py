@@ -22,7 +22,7 @@ class AdventBuilder:
         """Built input, tools, solving and tests template files for the provided day."""
         for file_path in self._build_file_paths(day=day):
             file_lines = self._prepare_file_lines(file_path=file_path, day=day)
-            self._write_file(file_path=file_path, lines=file_lines)
+            self.write_file(file_path=file_path, lines=file_lines)
 
     def build_all_templates(self):
         """Built input, tools, solving and tests template files for all days."""
@@ -30,7 +30,7 @@ class AdventBuilder:
             self.build_templates(day=day)
 
     @staticmethod
-    def _write_file(file_path: Path, lines: list[str]):
+    def write_file(file_path: Path, lines: list[str]):
         """Create a new file and write lines, or silently fail if it already exists."""
         if not file_path.exists():
             file_path.parent.mkdir(parents=True, exist_ok=True)
