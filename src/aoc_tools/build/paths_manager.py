@@ -4,6 +4,9 @@
 # Standard library imports:
 from pathlib import Path
 
+# Set constants:
+TEMPLATES_PATH = Path(__file__).parent / "templates"
+
 
 class PathsManager:
     """Centralize the definition of all built file paths, module names and URLs."""
@@ -55,6 +58,16 @@ class PathsManager:
         input_path = self.build_paths_map(day=day)["puzzle_input.txt"]
         relative_path = input_path.relative_to(self.project_path)
         return f'Path(__file__).parents[2] / "{relative_path.as_posix()}"'
+
+    @property
+    def templates_map(self) -> dict[str, Path]:
+        """Map the absolute paths of all file templates to their matching file names."""
+        scripts, tests = "day_&@day@&", "tests_day_&@day@&"
+        return {
+            "puzzle_input.txt": TEMPLATES_PATH / scripts / "puzzle_input.txt.template",
+            "solution.py": TEMPLATES_PATH / scripts / "solution.py.template",
+            "tools.py": TEMPLATES_PATH / scripts / "tools.py.template",
+            "tests.py": TEMPLATES_PATH / tests / "tests.py.template"}
 
     def get_url_advent_puzzle(self, day: int) -> str:
         """URL to the target day's puzzle description on the Advent of Code website."""

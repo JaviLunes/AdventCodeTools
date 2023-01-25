@@ -7,9 +7,6 @@ from pathlib import Path
 # Local application imports:
 from aoc_tools.build.paths_manager import PathsManager
 
-# Set constants:
-TEMPLATES_PATH = Path(__file__).parent / "templates"
-
 
 class AdventBuilder:
     """Manage template file building tasks."""
@@ -43,12 +40,8 @@ class AdventBuilder:
 
     def _prepare_file_lines(self, file_path: Path, day: int) -> list[str]:
         """Generate the file lines to include inside the target file path."""
-        file_name = file_path.name
-        if file_name == "tests.py":
-            path = TEMPLATES_PATH / "tests_day_&@day@&"
-        else:
-            path = TEMPLATES_PATH / "day_&@day@&"
-        with open(path / f"{file_name}.template", mode="r", encoding="utf-8") as file:
+        template_file = self.paths.templates_map[file_path.name]
+        with open(template_file, mode="r", encoding="utf-8") as file:
             lines_str = "|".join(file.readlines())
         for mark, value in self.get_replace_map(day=day).items():
             lines_str = lines_str.replace(mark, value)
