@@ -13,22 +13,21 @@ class PathsManager:
         self._year = year
         self._base_path = build_base_path
 
-    def get_module_day(self, day: int) -> str:
+    def _get_module_day_scripts(self, day: int) -> str:
         """Absolute import path for the base scripts module for the target day."""
         return f"aoc{self._year}.day_{day}"
 
-    def get_module_solution(self, day: int) -> str:
-        """Absolute import path for the target day's solution module."""
-        return f"{self.get_module_day(day=day)}.solution"
-
-    def get_module_tools(self, day: int) -> str:
-        """Absolute import path for the target day's tools module."""
-        return f"{self.get_module_day(day=day)}.tools"
-
     @staticmethod
-    def get_module_tests(day: int) -> str:
-        """Absolute import path for the target day's tests module."""
-        return f"tests.tests_day_{day}.tests"
+    def _get_module_day_tests(day: int) -> str:
+        """Absolute import path for the base tests module for the target day."""
+        return f"tests.tests_day_{day}"
+
+    def build_modules_map(self, day: int) -> dict[str, str]:
+        """Map the absolute import paths of all buildable modules to their file names."""
+        return {
+            "solution.py": f"{self._get_module_day_scripts(day=day)}.solution",
+            "tools.py": f"{self._get_module_day_scripts(day=day)}.tools",
+            "tests.py": f"{self._get_module_day_tests(day=day)}.tests"}
 
     def _get_path_day_scripts(self, day: int) -> Path:
         """Absolute file path for the base scripts directory for the target day."""
@@ -38,9 +37,13 @@ class PathsManager:
         """Absolute file path for the base tests directory for the target day."""
         return self.project_path / "tests" / f"tests_day_{day}"
 
-    def get_path_input(self, day: int) -> Path:
-        """Absolute file path to the target day's input file."""
-        return self._get_path_day_scripts(day=day) / "puzzle_input.txt"
+    def build_paths_map(self, day: int) -> dict[str, Path]:
+        """Map the absolute paths of all buildable files to their file names."""
+        return {
+            "puzzle_input.txt": self._get_path_day_scripts(day=day) / "puzzle_input.txt",
+            "solution.py": self._get_path_day_scripts(day=day) / "solution.py",
+            "tools.py": self._get_path_day_scripts(day=day) / "tools.py",
+            "tests.py": self._get_path_day_tests(day=day) / "tests.py"}
 
     @staticmethod
     def get_path_input_from_solution() -> str:
@@ -49,20 +52,9 @@ class PathsManager:
 
     def get_path_input_from_tests(self, day: int) -> str:
         """File path to the target day's input file from the tests' file path."""
-        input_path = self.get_path_input(day=day).relative_to(self.project_path)
-        return f'Path(__file__).parents[2] / "{input_path.as_posix()}"'
-
-    def get_path_solution(self, day: int) -> Path:
-        """Absolute file path to the target day's solution script."""
-        return self._get_path_day_scripts(day=day) / "solution.py"
-
-    def get_path_tools(self, day: int) -> Path:
-        """Absolute file path to the target day's tools script."""
-        return self._get_path_day_scripts(day=day) / "tools.py"
-
-    def get_path_tests(self, day: int) -> Path:
-        """Absolute file path to the target day's tests script."""
-        return self._get_path_day_tests(day=day) / "tests.py"
+        input_path = self.build_paths_map(day=day)["puzzle_input.txt"]
+        relative_path = input_path.relative_to(self.project_path)
+        return f'Path(__file__).parents[2] / "{relative_path.as_posix()}"'
 
     def get_url_advent_puzzle(self, day: int) -> str:
         """URL to the target day's puzzle description on the Advent of Code website."""

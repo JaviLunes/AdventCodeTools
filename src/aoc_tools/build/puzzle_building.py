@@ -39,10 +39,7 @@ class AdventBuilder:
 
     def _build_file_paths(self, day: int) -> list[Path]:
         """Generate absolute paths to all files to be built."""
-        return [self.paths.get_path_input(day=day),
-                self.paths.get_path_solution(day=day),
-                self.paths.get_path_tools(day=day),
-                self.paths.get_path_tests(day=day)]
+        return list(self.paths.build_paths_map(day=day).values())
 
     def _prepare_file_lines(self, file_path: Path, day: int) -> list[str]:
         """Generate the file lines to include inside the target file path."""
@@ -66,4 +63,4 @@ class AdventBuilder:
             "&@day@&": str(day),
             "&@input_from_solution@&": self.paths.get_path_input_from_solution(),
             "&@input_from_tests@&": self.paths.get_path_input_from_tests(day=day),
-            "&@tools_module@&": self.paths.get_module_tools(day=day)}
+            "&@tools_module@&": self.paths.build_modules_map(day=day)["tools.py"]}

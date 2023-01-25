@@ -43,7 +43,7 @@ class BuildFileInputTests(unittest.TestCase):
         """Assert that the file path matches the expected write path."""
         for i in range(N_DAYS):
             file_path, _ = self.mock_written_list[i][self.file_name]
-            expected_path = PATHS.get_path_input(day=i + 1)
+            expected_path = PATHS.build_paths_map(day=i + 1)[self.file_name]
             self.assertEqual(expected_path, file_path)
 
     def test_file_is_empty(self):
@@ -70,7 +70,7 @@ class BuildFileSolutionTests(unittest.TestCase):
         """Assert that the file path matches the expected write path."""
         for i in range(N_DAYS):
             file_path, _ = self.mock_written_list[i][self.file_name]
-            expected_path = PATHS.get_path_solution(day=i + 1)
+            expected_path = PATHS.build_paths_map(day=i + 1)[self.file_name]
             self.assertEqual(expected_path, file_path)
 
     def test_puzzle_name_on_module_docstring(self):
@@ -94,7 +94,8 @@ class BuildFileSolutionTests(unittest.TestCase):
         """The tools module import path is built using the expected module pattern."""
         for i in range(N_DAYS):
             _, lines = self.mock_written_list[i][self.file_name]
-            expected_import = f"from {PATHS.get_module_tools(day=i + 1)}"
+            module = PATHS.build_modules_map(day=i + 1)["tools.py"]
+            expected_import = f"from {module}"
             lines_start = lines.index("# Local application imports:\n") + 1
             lines_end = lines.index("\n", lines_start)
             target_lines = lines[lines_start:lines_end]
@@ -126,7 +127,7 @@ class BuildFileToolsTests(unittest.TestCase):
         """Assert that the file path matches the expected write path."""
         for i in range(N_DAYS):
             file_path, _ = self.mock_written_list[i][self.file_name]
-            expected_path = PATHS.get_path_tools(day=i + 1)
+            expected_path = PATHS.build_paths_map(day=i + 1)[self.file_name]
             self.assertEqual(expected_path, file_path)
 
     def test_puzzle_name_on_module_docstring(self):
@@ -155,7 +156,7 @@ class BuildFileTestsTests(unittest.TestCase):
         for i in range(N_DAYS):
             file_name = self.file_name.substitute(day=i + 1)
             file_path, _ = self.mock_written_list[i][file_name]
-            expected_path = PATHS.get_path_tests(day=i + 1)
+            expected_path = PATHS.build_paths_map(day=i + 1)[file_name]
             self.assertEqual(expected_path, file_path)
 
     def test_puzzle_name_on_module_docstring(self):
@@ -171,7 +172,7 @@ class BuildFileTestsTests(unittest.TestCase):
         for i in range(N_DAYS):
             file_name = self.file_name.substitute(day=i + 1)
             _, lines = self.mock_written_list[i][file_name]
-            expected_import = f"from {PATHS.get_module_day(day=i + 1)}."
+            expected_import = f"from {PATHS._get_module_day_scripts(day=i + 1)}."
             lines_start = lines.index("# Local application imports:\n") + 1
             lines_end = lines.index("\n", lines_start)
             for file_line in lines[lines_start:lines_end]:
