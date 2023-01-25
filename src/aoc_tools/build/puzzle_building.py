@@ -48,7 +48,7 @@ class AdventBuilder:
             path = TEMPLATES_PATH / "tests_day_&@day@&"
         else:
             path = TEMPLATES_PATH / "day_&@day@&"
-        with open(path / f"{file_name}.txt", mode="r", encoding="utf-8") as file:
+        with open(path / f"{file_name}.template", mode="r", encoding="utf-8") as file:
             lines_str = "|".join(file.readlines())
         for mark, value in self.get_replace_map(day=day).items():
             lines_str = lines_str.replace(mark, value)
