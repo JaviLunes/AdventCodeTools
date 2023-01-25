@@ -5,7 +5,7 @@
 from pathlib import Path
 
 # Set constants:
-TEMPLATES_PATH = Path(__file__).parent / "templates"
+TEMPLATES_PATH = Path(__file__).parents[3] / "build_templates"
 
 
 class PathsManager:
