@@ -47,10 +47,11 @@ class AdventBuilder:
     def _prepare_file_lines(self, file_path: Path, day: int) -> list[str]:
         """Generate the file lines to include inside the target file path."""
         file_name = file_path.name
-        if file_name.startswith("tests"):
-            file_name = "tests.py"
-        template_file = TEMPLATES_PATH / f"{file_name}.txt"
-        with open(template_file, mode="r", encoding="utf-8") as file:
+        if file_name == "tests.py":
+            path = TEMPLATES_PATH / "tests_day_&@day@&"
+        else:
+            path = TEMPLATES_PATH / "day_&@day@&"
+        with open(path / f"{file_name}.txt", mode="r", encoding="utf-8") as file:
             lines_str = "|".join(file.readlines())
         for mark, value in self.get_replace_map(day=day).items():
             lines_str = lines_str.replace(mark, value)

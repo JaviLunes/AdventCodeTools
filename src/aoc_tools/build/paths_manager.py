@@ -28,15 +28,19 @@ class PathsManager:
     @staticmethod
     def get_module_tests(day: int) -> str:
         """Absolute import path for the target day's tests module."""
-        return f"tests.tests_day_{day}"
+        return f"tests.tests_day_{day}.tests"
 
-    def get_path_day(self, day: int) -> Path:
+    def _get_path_day_scripts(self, day: int) -> Path:
         """Absolute file path for the base scripts directory for the target day."""
         return self.project_path / "src" / f"aoc{self._year}" / f"day_{day}"
 
+    def _get_path_day_tests(self, day: int) -> Path:
+        """Absolute file path for the base tests directory for the target day."""
+        return self.project_path / "tests" / f"tests_day_{day}"
+
     def get_path_input(self, day: int) -> Path:
         """Absolute file path to the target day's input file."""
-        return self.get_path_day(day=day) / "puzzle_input.txt"
+        return self._get_path_day_scripts(day=day) / "puzzle_input.txt"
 
     @staticmethod
     def get_path_input_from_solution() -> str:
@@ -46,19 +50,19 @@ class PathsManager:
     def get_path_input_from_tests(self, day: int) -> str:
         """File path to the target day's input file from the tests' file path."""
         input_path = self.get_path_input(day=day).relative_to(self.project_path)
-        return f'Path(__file__).parents[1] / "{input_path.as_posix()}"'
+        return f'Path(__file__).parents[2] / "{input_path.as_posix()}"'
 
     def get_path_solution(self, day: int) -> Path:
         """Absolute file path to the target day's solution script."""
-        return self.get_path_day(day=day) / "solution.py"
+        return self._get_path_day_scripts(day=day) / "solution.py"
 
     def get_path_tools(self, day: int) -> Path:
         """Absolute file path to the target day's tools script."""
-        return self.get_path_day(day=day) / "tools.py"
+        return self._get_path_day_scripts(day=day) / "tools.py"
 
     def get_path_tests(self, day: int) -> Path:
         """Absolute file path to the target day's tests script."""
-        return self.project_path / "tests" / f"tests_day_{day}.py"
+        return self._get_path_day_tests(day=day) / "tests.py"
 
     def get_url_advent_puzzle(self, day: int) -> str:
         """URL to the target day's puzzle description on the Advent of Code website."""

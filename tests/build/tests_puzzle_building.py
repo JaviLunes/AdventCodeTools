@@ -141,7 +141,7 @@ class BuildFileTestsTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
         """Define tools to be tested."""
-        cls.file_name = Template("tests_day_$day.py")
+        cls.file_name = Template("tests.py")
         cls.mock_written_list = [mock_build_write(day=i + 1) for i in range(N_DAYS)]
 
     def test_file_is_written(self):
