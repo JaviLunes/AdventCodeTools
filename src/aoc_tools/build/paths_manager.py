@@ -46,6 +46,7 @@ class PathsManager:
             "puzzle_input.txt": self._get_path_day_scripts(day=day) / "puzzle_input.txt",
             "solution.py": self._get_path_day_scripts(day=day) / "solution.py",
             "tools.py": self._get_path_day_scripts(day=day) / "tools.py",
+            "__init__.py": self._get_path_day_tests(day=day) / "__init__.py",
             "tests.py": self._get_path_day_tests(day=day) / "tests.py"}
 
     @staticmethod
@@ -67,6 +68,7 @@ class PathsManager:
             "puzzle_input.txt": TEMPLATES_PATH / scripts / "puzzle_input.txt.template",
             "solution.py": TEMPLATES_PATH / scripts / "solution.py.template",
             "tools.py": TEMPLATES_PATH / scripts / "tools.py.template",
+            "__init__.py": TEMPLATES_PATH / tests / "__init__.py.template",
             "tests.py": TEMPLATES_PATH / tests / "tests.py.template"}
 
     def get_url_advent_puzzle(self, day: int) -> str:

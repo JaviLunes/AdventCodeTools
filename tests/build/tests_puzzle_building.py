@@ -138,6 +138,33 @@ class BuildFileToolsTests(unittest.TestCase):
             self.assertIn(expected_name, lines[1])
 
 
+class BuildFileTestsInitTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls) -> None:
+        """Define tools to be tested."""
+        cls.file_name = "__init__.py"
+        cls.mock_written_list = [mock_build_write(day=i + 1) for i in range(N_DAYS)]
+
+    def test_file_is_written(self):
+        """Assert that the target file is written."""
+        for i in range(N_DAYS):
+            self.assertIn(self.file_name, self.mock_written_list[i])
+
+    def test_file_path_is_as_expected(self):
+        """Assert that the file path matches the expected write path."""
+        for i in range(N_DAYS):
+            file_path, _ = self.mock_written_list[i][self.file_name]
+            expected_path = PATHS.build_paths_map(day=i + 1)[self.file_name]
+            self.assertEqual(expected_path, file_path)
+
+    def test_puzzle_name_on_module_docstring(self):
+        """The module docstring must include the full name of the target puzzle."""
+        for i in range(N_DAYS):
+            _, lines = self.mock_written_list[i][self.file_name]
+            expected_name = BUILDER.puzzles[i]
+            self.assertIn(expected_name, lines[1])
+
+
 class BuildFileTestsTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
