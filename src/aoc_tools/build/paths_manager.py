@@ -60,16 +60,17 @@ class PathsManager:
         relative_path = input_path.relative_to(self.project_path)
         return f'Path(__file__).parents[2] / "{relative_path.as_posix()}"'
 
-    @property
-    def templates_map(self) -> dict[str, Path]:
-        """Map the absolute paths of all file templates to their matching file names."""
-        scripts, tests = "day_&@day@&", "tests_day_&@day@&"
+    def build_templates_map(self, day: int) -> dict[Path, Path]:
+        """Map the absolute paths of all file templates to their matching file paths."""
+        scripts = TEMPLATES_PATH / "day_&@day@&"
+        tests = TEMPLATES_PATH / "tests_day_&@day@&"
+        paths_map = self.build_paths_map(day=day)
         return {
-            "puzzle_input.txt": TEMPLATES_PATH / scripts / "puzzle_input.txt.template",
-            "solution.py": TEMPLATES_PATH / scripts / "solution.py.template",
-            "tools.py": TEMPLATES_PATH / scripts / "tools.py.template",
-            "__init__.py": TEMPLATES_PATH / tests / "__init__.py.template",
-            "tests.py": TEMPLATES_PATH / tests / "tests.py.template"}
+            paths_map["puzzle_input.txt"]: scripts / "puzzle_input.txt.template",
+            paths_map["solution.py"]: scripts / "solution.py.template",
+            paths_map["tools.py"]: scripts / "tools.py.template",
+            paths_map["__init__.py"]: tests / "__init__.py.template",
+            paths_map["tests.py"]: tests / "tests.py.template"}
 
     def get_url_advent_puzzle(self, day: int) -> str:
         """URL to the target day's puzzle description on the Advent of Code website."""
