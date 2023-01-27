@@ -189,13 +189,52 @@ class BuildFileTestsInitTests(unittest.TestCase):
             self.assertIn(expected_name, lines[1])
 
 
-class BuildFileTestsTests(unittest.TestCase):
+class BuildFileTestsExampleTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
         """Define tools to be tested."""
         cls.mock_map = filter_mock_map(
             mock_map=mock_build_write(),
-            filter_func=lambda a: a[0].name == "tests.py")
+            filter_func=lambda a: a[0].name == "tests_example.py")
+
+    def test_file_is_written(self):
+        """Assert that the target file is written."""
+        for i in range(N_DAYS):
+            self.assertEqual(1, len(self.mock_map[i + 1]))
+
+    def test_file_path_is_as_expected(self):
+        """Assert that the file path matches the expected write path."""
+        for i in range(N_DAYS):
+            paths_data = PATHS.get_daily_data(day=i + 1)
+            file_path, _ = self.mock_map[i + 1][0]
+            self.assertIn(file_path, paths_data.file_paths)
+
+    def test_puzzle_name_on_module_docstring(self):
+        """The module docstring must include the full name of the target puzzle."""
+        for i in range(N_DAYS):
+            _, lines = self.mock_map[i + 1][0]
+            expected_name = BUILDER.puzzles[i]
+            self.assertIn(expected_name, lines[1])
+
+    def test_source_daily_module_on_local_imports(self):
+        """The local application imports are built using the expected module pattern."""
+        for i in range(N_DAYS):
+            paths_data = PATHS.get_daily_data(day=i + 1)
+            _, lines = self.mock_map[i + 1][0]
+            expected_import = f"from {paths_data.module_day_scripts}."
+            lines_start = lines.index("# Local application imports:\n") + 1
+            lines_end = lines.index("\n", lines_start)
+            for file_line in lines[lines_start:lines_end]:
+                self.assertIn(expected_import, file_line)
+
+
+class BuildFileTestsSolutionTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls) -> None:
+        """Define tools to be tested."""
+        cls.mock_map = filter_mock_map(
+            mock_map=mock_build_write(),
+            filter_func=lambda a: a[0].name == "tests_solution.py")
 
     def test_file_is_written(self):
         """Assert that the target file is written."""

@@ -38,7 +38,8 @@ class PathsData:
                 "solution": scripts / "solution.py",
                 "tools": scripts / "tools.py",
                 "tests_init": tests / "__init__.py",
-                "tests": tests / "tests.py"}
+                "tests_example": tests / "tests_example.py",
+                "tests_solution": tests / "tests_solution.py"}
 
     @staticmethod
     def _build_templates() -> dict[str, Path]:
@@ -49,7 +50,8 @@ class PathsData:
                 "solution": scripts / "solution.py.template",
                 "tools": scripts / "tools.py.template",
                 "tests_init": tests / "__init__.py.template",
-                "tests": tests / "tests.py.template"}
+                "tests_example": tests / "tests_example.py.template",
+                "tests_solution": tests / "tests_solution.py.template"}
 
     @property
     def file_paths(self) -> list[Path]:
