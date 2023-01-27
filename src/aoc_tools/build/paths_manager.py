@@ -32,8 +32,8 @@ class PathsData:
 
     def _build_file_paths(self) -> dict[str, Path]:
         """Map the absolute file path of each known buildable file to a name."""
-        scripts = self.project_path / "src" / f"aoc{self._year}" / f"day_{self.day_z}"
-        tests = self.project_path / "tests" / f"tests_day_{self.day_z}"
+        scripts = self.path_project / "src" / f"aoc{self._year}" / f"day_{self.day_z}"
+        tests = self.path_project / "tests" / f"tests_day_{self.day_z}"
         return {"input": scripts / "puzzle_input.txt",
                 "solution": scripts / "solution.py",
                 "tools": scripts / "tools.py",
@@ -72,13 +72,8 @@ class PathsData:
     def path_input_from_tests(self) -> str:
         """File path to the target day's input file from the tests' file path."""
         input_path = self._files_map["input"]
-        relative_path = input_path.relative_to(self.project_path)
+        relative_path = input_path.relative_to(self.path_project)
         return f'Path(__file__).parents[2] / "{relative_path.as_posix()}"'
-
-    @property
-    def path_project(self) -> Path:
-        """The main path of the built project package."""
-        return self._base_path / f"AdventCode{self._year}"
 
     @property
     def module_day_scripts(self) -> str:
@@ -112,7 +107,7 @@ class PathsData:
         return "aoc_tools"
 
     @property
-    def project_path(self) -> Path:
+    def path_project(self) -> Path:
         """The main path of the built project package."""
         return self._base_path / f"AdventCode{self._year}"
 
