@@ -32,8 +32,8 @@ class PathsData:
 
     def _build_file_paths(self) -> dict[str, Path]:
         """Map the absolute file path of each known buildable file to a name."""
-        scripts = self.project_path / "src" / f"aoc{self._year}" / f"day_{self._day}"
-        tests = self.project_path / "tests" / f"tests_day_{self._day}"
+        scripts = self.project_path / "src" / f"aoc{self._year}" / f"day_{self.day_z}"
+        tests = self.project_path / "tests" / f"tests_day_{self.day_z}"
         return {"input": scripts / "puzzle_input.txt",
                 "solution": scripts / "solution.py",
                 "tools": scripts / "tools.py",
@@ -44,8 +44,8 @@ class PathsData:
     @staticmethod
     def _build_templates() -> dict[str, Path]:
         """Map the absolute template path of each known buildable file to a name."""
-        scripts = TEMPLATES_PATH / "day_&@day@&"
-        tests = TEMPLATES_PATH / "tests_day_&@day@&"
+        scripts = TEMPLATES_PATH / "day_&@day_z@&"
+        tests = TEMPLATES_PATH / "tests_day_&@day_z@&"
         return {"input": scripts / "puzzle_input.txt.template",
                 "solution": scripts / "solution.py.template",
                 "tools": scripts / "tools.py.template",
@@ -83,7 +83,7 @@ class PathsData:
     @property
     def module_day_scripts(self) -> str:
         """Absolute import path for the base module containing the daily scripts."""
-        return f"aoc{self._year}.day_{self._day}"
+        return f"aoc{self._year}.day_{self.day_z}"
 
     @property
     def module_solution(self) -> str:
@@ -104,7 +104,7 @@ class PathsData:
     def url_github_solution(self) -> str:
         """URL to the GitHub repository page with the solution script."""
         return f"https://github.com/JaviLunes/AdventCode$year/tree/master" \
-               f"/src/aoc{self._year}/day_{self._day}/solution.py"
+               f"/src/aoc{self._year}/day_{self.day_z}/solution.py"
 
     @property
     def this_package(self) -> str:
@@ -115,3 +115,8 @@ class PathsData:
     def project_path(self) -> Path:
         """The main path of the built project package."""
         return self._base_path / f"AdventCode{self._year}"
+
+    @property
+    def day_z(self) -> str:
+        """Leading-zero-filled string version of the target day."""
+        return str(self._day).zfill(2)
