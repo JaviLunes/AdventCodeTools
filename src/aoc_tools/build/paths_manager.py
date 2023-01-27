@@ -1,5 +1,5 @@
 # coding=utf-8
-"""Define the PathsManager tool."""
+"""Provide tools for managing and accessing info related to buildable files."""
 
 # Standard library imports:
 from pathlib import Path
@@ -9,77 +9,100 @@ TEMPLATES_PATH = Path(__file__).parents[3] / "build_templates"
 
 
 class PathsManager:
-    """Centralize the definition of all built file paths, module names and URLs."""
+    """Centralize the creation of PathsData containers."""
     __slots__ = ["_year", "_base_path"]
 
     def __init__(self, year: int, build_base_path: Path):
         self._year = year
         self._base_path = build_base_path
 
-    def _get_module_day_scripts(self, day: int) -> str:
-        """Absolute import path for the base scripts module for the target day."""
-        return f"aoc{self._year}.day_{day}"
+    def get_daily_data(self, day: int) -> "PathsData":
+        """Generate a PathsData container for the target day."""
+        return PathsData(year=self._year, day=day, build_base_path=self._base_path)
+
+
+class PathsData:
+    """Provide paths, import strings, templates and URLs for a single target day."""
+    def __init__(self, year: int, day: int, build_base_path: Path):
+        self._year, self._day = year, day
+        self._base_path = build_base_path
+        self._files_map = self._build_file_paths()
+        self._templates_map = self._build_templates()
+        assert self._files_map.keys() == self._templates_map.keys()
+
+    def _build_file_paths(self) -> dict[str, Path]:
+        """Map the absolute file path of each known buildable file to a name."""
+        scripts = self.project_path / "src" / f"aoc{self._year}" / f"day_{self._day}"
+        tests = self.project_path / "tests" / f"tests_day_{self._day}"
+        return {"input": scripts / "puzzle_input.txt",
+                "solution": scripts / "solution.py",
+                "tools": scripts / "tools.py",
+                "tests_init": tests / "__init__.py",
+                "tests": tests / "tests.py"}
 
     @staticmethod
-    def _get_module_day_tests(day: int) -> str:
-        """Absolute import path for the base tests module for the target day."""
-        return f"tests.tests_day_{day}"
+    def _build_templates() -> dict[str, Path]:
+        """Map the absolute template path of each known buildable file to a name."""
+        scripts = TEMPLATES_PATH / "day_&@day@&"
+        tests = TEMPLATES_PATH / "tests_day_&@day@&"
+        return {"input": scripts / "puzzle_input.txt.template",
+                "solution": scripts / "solution.py.template",
+                "tools": scripts / "tools.py.template",
+                "tests_init": tests / "__init__.py.template",
+                "tests": tests / "tests.py.template"}
 
-    def build_modules_map(self, day: int) -> dict[str, str]:
-        """Map the absolute import paths of all buildable modules to their file names."""
-        return {
-            "solution.py": f"{self._get_module_day_scripts(day=day)}.solution",
-            "tools.py": f"{self._get_module_day_scripts(day=day)}.tools",
-            "tests.py": f"{self._get_module_day_tests(day=day)}.tests"}
+    @property
+    def file_paths(self) -> list[Path]:
+        """List absolute file paths for all known buildable files."""
+        return list(self._files_map.values())
 
-    def _get_path_day_scripts(self, day: int) -> Path:
-        """Absolute file path for the base scripts directory for the target day."""
-        return self.project_path / "src" / f"aoc{self._year}" / f"day_{day}"
+    @property
+    def file_templates(self) -> list[Path]:
+        """List absolute template paths for all known buildable files."""
+        return list(self._templates_map.values())
 
-    def _get_path_day_tests(self, day: int) -> Path:
-        """Absolute file path for the base tests directory for the target day."""
-        return self.project_path / "tests" / f"tests_day_{day}"
-
-    def build_paths_map(self, day: int) -> dict[str, Path]:
-        """Map the absolute paths of all buildable files to their file names."""
-        return {
-            "puzzle_input.txt": self._get_path_day_scripts(day=day) / "puzzle_input.txt",
-            "solution.py": self._get_path_day_scripts(day=day) / "solution.py",
-            "tools.py": self._get_path_day_scripts(day=day) / "tools.py",
-            "__init__.py": self._get_path_day_tests(day=day) / "__init__.py",
-            "tests.py": self._get_path_day_tests(day=day) / "tests.py"}
-
-    @staticmethod
-    def get_path_input_from_solution() -> str:
+    @property
+    def path_input_from_solution(self) -> str:
         """File path to the target day's input file from the solution's file path."""
         return f'Path(__file__).parent / "puzzle_input.txt"'
 
-    def get_path_input_from_tests(self, day: int) -> str:
+    @property
+    def path_input_from_tests(self) -> str:
         """File path to the target day's input file from the tests' file path."""
-        input_path = self.build_paths_map(day=day)["puzzle_input.txt"]
+        input_path = self._files_map["input"]
         relative_path = input_path.relative_to(self.project_path)
         return f'Path(__file__).parents[2] / "{relative_path.as_posix()}"'
 
-    def build_templates_map(self, day: int) -> dict[Path, Path]:
-        """Map the absolute paths of all file templates to their matching file paths."""
-        scripts = TEMPLATES_PATH / "day_&@day@&"
-        tests = TEMPLATES_PATH / "tests_day_&@day@&"
-        paths_map = self.build_paths_map(day=day)
-        return {
-            paths_map["puzzle_input.txt"]: scripts / "puzzle_input.txt.template",
-            paths_map["solution.py"]: scripts / "solution.py.template",
-            paths_map["tools.py"]: scripts / "tools.py.template",
-            paths_map["__init__.py"]: tests / "__init__.py.template",
-            paths_map["tests.py"]: tests / "tests.py.template"}
+    @property
+    def path_project(self) -> Path:
+        """The main path of the built project package."""
+        return self._base_path / f"AdventCode{self._year}"
 
-    def get_url_advent_puzzle(self, day: int) -> str:
-        """URL to the target day's puzzle description on the Advent of Code website."""
-        return f"https://adventofcode.com/{self._year}/day/{day}"
+    @property
+    def module_day_scripts(self) -> str:
+        """Absolute import path for the base module containing the daily scripts."""
+        return f"aoc{self._year}.day_{self._day}"
 
-    def get_url_github_solution(self, day: int) -> str:
-        """URL to the target day's solution script on the GitHub repository."""
+    @property
+    def module_solution(self) -> str:
+        """Absolute import path to the script module containing the daily solution."""
+        return f"{self.module_day_scripts}.solution"
+
+    @property
+    def module_tools(self) -> str:
+        """Absolute import path to the script module containing the daily tools."""
+        return f"{self.module_day_scripts}.tools"
+
+    @property
+    def url_advent_puzzle(self) -> str:
+        """URL to the Advent of Code web page with the puzzle description."""
+        return f"https://adventofcode.com/{self._year}/day/{self._day}"
+
+    @property
+    def url_github_solution(self) -> str:
+        """URL to the GitHub repository page with the solution script."""
         return f"https://github.com/JaviLunes/AdventCode$year/tree/master" \
-               f"/src/aoc{self._year}/day_{day}/solution.py"
+               f"/src/aoc{self._year}/day_{self._day}/solution.py"
 
     @property
     def this_package(self) -> str:
