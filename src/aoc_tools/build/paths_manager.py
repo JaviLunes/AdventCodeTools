@@ -2,10 +2,14 @@
 """Provide tools for managing and accessing info related to buildable files."""
 
 # Standard library imports:
+from itertools import takewhile
 from pathlib import Path
 
 # Set constants:
 TEMPLATES_PATH = Path(__file__).parents[3] / "build_templates"
+PUZZLE_FILE_NAME_INPUT = "puzzle_input.txt"
+PUZZLE_FILE_NAME_SOLUTION = "solution.py"
+PUZZLE_FILE_NAME_TESTS = "tests_solution.py"
 
 
 class PathsManager:
@@ -26,32 +30,32 @@ class PathsData:
     def __init__(self, year: int, day: int, build_base_path: Path):
         self._year, self._day = year, day
         self._base_path = build_base_path
+        self._replace_map = {"&@year@&": str(self._year), "&@day_z@&": str(self.day_z)}
         self._files_map = self._build_file_paths()
         self._templates_map = self._build_templates()
-        assert self._files_map.keys() == self._templates_map.keys()
+
+    def _replace_marks(self, template_str: str) -> str:
+        """Replace all '&@X@&' marks in a template string by their matching values."""
+        for mark, value in self._replace_map.items():
+            template_str = template_str.replace(mark, value)
+        return template_str
+
+    @staticmethod
+    def _explore_template_tree() -> list[Path]:
+        """Find all buildable template files nested inside the base template path."""
+        return list(TEMPLATES_PATH.rglob(pattern="*.template"))
 
     def _build_file_paths(self) -> dict[str, Path]:
         """Map the absolute file path of each known buildable file to a name."""
-        scripts = self.path_project / "src" / f"aoc{self._year}" / f"day_{self.day_z}"
-        tests = self.path_project / "tests" / f"tests_day_{self.day_z}"
-        return {"input": scripts / "puzzle_input.txt",
-                "solution": scripts / "solution.py",
-                "tools": scripts / "tools.py",
-                "tests_init": tests / "__init__.py",
-                "tests_example": tests / "tests_example.py",
-                "tests_solution": tests / "tests_solution.py"}
+        paths = self._explore_template_tree()
+        paths = [Path(self._replace_marks(template_str=str(p))) for p in paths]
+        paths = [p.with_suffix("") for p in paths]
+        paths = [self._base_path / p.relative_to(TEMPLATES_PATH) for p in paths]
+        return {path.name: path for path in paths}
 
-    @staticmethod
-    def _build_templates() -> dict[str, Path]:
+    def _build_templates(self) -> dict[str, Path]:
         """Map the absolute template path of each known buildable file to a name."""
-        scripts = TEMPLATES_PATH / "AdventCode&@year@&/src/aoc&@year@&/day_&@day_z@&"
-        tests = TEMPLATES_PATH / "AdventCode&@year@&/tests/tests_day_&@day_z@&"
-        return {"input": scripts / "puzzle_input.txt.template",
-                "solution": scripts / "solution.py.template",
-                "tools": scripts / "tools.py.template",
-                "tests_init": tests / "__init__.py.template",
-                "tests_example": tests / "tests_example.py.template",
-                "tests_solution": tests / "tests_solution.py.template"}
+        return {path.name: path for path in self._explore_template_tree()}
 
     @property
     def file_paths(self) -> list[Path]:
@@ -66,29 +70,43 @@ class PathsData:
     @property
     def path_input_from_solution(self) -> str:
         """File path to the target day's input file from the solution's file path."""
-        return f'Path(__file__).parent / "puzzle_input.txt"'
+        return self._path_target_from_source(
+            target_file=self._files_map[PUZZLE_FILE_NAME_INPUT],
+            source_file=self._files_map[PUZZLE_FILE_NAME_SOLUTION])
 
     @property
     def path_input_from_tests(self) -> str:
         """File path to the target day's input file from the tests' file path."""
-        input_path = self._files_map["input"]
-        relative_path = input_path.relative_to(self.path_project)
-        return f'Path(__file__).parents[2] / "{relative_path.as_posix()}"'
+        return self._path_target_from_source(
+            target_file=self._files_map[PUZZLE_FILE_NAME_INPUT],
+            source_file=self._files_map[PUZZLE_FILE_NAME_TESTS])
+
+    @staticmethod
+    def _path_target_from_source(target_file: Path, source_file: Path) -> str:
+        """String path to a target file from inside another source file."""
+        shared_parents = list(takewhile(
+            lambda pair: pair[0] == pair[1],
+            list(zip(target_file.parents[::-1], source_file.parents[::-1]))))
+        shared_path = shared_parents[-1][0]
+        n_back = max(0, len(source_file.parents) - len(shared_path.parts))
+        parents_str = "parent" if n_back == 0 else f"parents[{n_back}]"
+        relative_path = target_file.relative_to(shared_path)
+        return f'Path(__file__).{parents_str} / "{relative_path.as_posix()}"'
 
     @property
     def module_day_scripts(self) -> str:
         """Absolute import path for the base module containing the daily scripts."""
-        return f"aoc{self._year}.day_{self.day_z}"
+        return f"aoc{self._year}.day_{self.day_z}"  # TODO: Un-hardcode this.
 
     @property
     def module_solution(self) -> str:
         """Absolute import path to the script module containing the daily solution."""
-        return f"{self.module_day_scripts}.solution"
+        return f"{self.module_day_scripts}.solution"  # TODO: Un-hardcode this.
 
     @property
     def module_tools(self) -> str:
         """Absolute import path to the script module containing the daily tools."""
-        return f"{self.module_day_scripts}.tools"
+        return f"{self.module_day_scripts}.tools"  # TODO: Un-hardcode this.
 
     @property
     def url_advent_puzzle(self) -> str:
@@ -109,7 +127,8 @@ class PathsData:
     @property
     def path_project(self) -> Path:
         """The main path of the built project package."""
-        return self._base_path / f"AdventCode{self._year}"
+        path = next(TEMPLATES_PATH.glob("*")).relative_to(TEMPLATES_PATH)
+        return self._base_path / Path(self._replace_marks(str(path)))
 
     @property
     def day_z(self) -> str:
