@@ -220,8 +220,8 @@ class BuildFileTestsExampleTests(unittest.TestCase):
         """The local application imports are built using the expected module pattern."""
         for i in range(N_DAYS):
             paths_data = PATHS.get_daily_data(day=i + 1)
+            expected_import = f"from {paths_data.module_solution.rsplit('.', 1)[0]}."
             _, lines = self.mock_map[i + 1][0]
-            expected_import = f"from {paths_data.module_day_scripts}."
             lines_start = lines.index("# Local application imports:\n") + 1
             lines_end = lines.index("\n", lines_start)
             for file_line in lines[lines_start:lines_end]:
@@ -259,8 +259,8 @@ class BuildFileTestsSolutionTests(unittest.TestCase):
         """The local application imports are built using the expected module pattern."""
         for i in range(N_DAYS):
             paths_data = PATHS.get_daily_data(day=i + 1)
+            expected_import = f"from {paths_data.module_solution.rsplit('.', 1)[0]}."
             _, lines = self.mock_map[i + 1][0]
-            expected_import = f"from {paths_data.module_day_scripts}."
             lines_start = lines.index("# Local application imports:\n") + 1
             lines_end = lines.index("\n", lines_start)
             for file_line in lines[lines_start:lines_end]:

@@ -169,13 +169,6 @@ class ModulesTests(unittest.TestCase):
         """Add the expected amount of leading zeros to the string of the target day."""
         return str(day).zfill(2)
 
-    def test_day_scripts_module(self):
-        """Assert that the module import string is as expected."""
-        for day in DAYS:
-            paths_data = self.manager.get_daily_data(day=day)
-            expected_str = f"aoc{YEAR}.day_{self._get_day_z(day=day)}"
-            self.assertEqual(expected_str, paths_data.module_day_scripts)
-
     def test_solution_scripts_module(self):
         """Assert that the module import string is as expected."""
         for day in DAYS:

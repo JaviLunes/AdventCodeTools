@@ -10,6 +10,7 @@ TEMPLATES_PATH = Path(__file__).parents[3] / "build_templates"
 PUZZLE_FILE_NAME_INPUT = "puzzle_input.txt"
 PUZZLE_FILE_NAME_SOLUTION = "solution.py"
 PUZZLE_FILE_NAME_TESTS = "tests_solution.py"
+PUZZLE_FILE_NAME_TOOLS = "tools.py"
 
 
 class PathsManager:
@@ -94,19 +95,16 @@ class PathsData:
         return f'Path(__file__).{parents_str} / "{relative_path.as_posix()}"'
 
     @property
-    def module_day_scripts(self) -> str:
-        """Absolute import path for the base module containing the daily scripts."""
-        return f"aoc{self._year}.day_{self.day_z}"  # TODO: Un-hardcode this.
-
-    @property
     def module_solution(self) -> str:
         """Absolute import path to the script module containing the daily solution."""
-        return f"{self.module_day_scripts}.solution"  # TODO: Un-hardcode this.
+        file = self._files_map[PUZZLE_FILE_NAME_SOLUTION].relative_to(self.path_src)
+        return file.with_suffix("").as_posix().replace("/", ".")
 
     @property
     def module_tools(self) -> str:
         """Absolute import path to the script module containing the daily tools."""
-        return f"{self.module_day_scripts}.tools"  # TODO: Un-hardcode this.
+        file = self._files_map[PUZZLE_FILE_NAME_TOOLS].relative_to(self.path_src)
+        return file.with_suffix("").as_posix().replace("/", ".")
 
     @property
     def url_advent_puzzle(self) -> str:
@@ -128,6 +126,12 @@ class PathsData:
     def path_project(self) -> Path:
         """The main path of the built project package."""
         path = next(TEMPLATES_PATH.glob("*")).relative_to(TEMPLATES_PATH)
+        return self._base_path / Path(self._replace_marks(str(path)))
+
+    @property
+    def path_src(self) -> Path:
+        """The source path of the built project package."""
+        path = next(TEMPLATES_PATH.glob("*/src")).relative_to(TEMPLATES_PATH)
         return self._base_path / Path(self._replace_marks(str(path)))
 
     @property
