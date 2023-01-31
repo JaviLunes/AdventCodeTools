@@ -44,8 +44,8 @@ class PathsData:
     @staticmethod
     def _build_templates() -> dict[str, Path]:
         """Map the absolute template path of each known buildable file to a name."""
-        scripts = TEMPLATES_PATH / "day_&@day_z@&"
-        tests = TEMPLATES_PATH / "tests_day_&@day_z@&"
+        scripts = TEMPLATES_PATH / "AdventCode&@year@&/src/aoc&@year@&/day_&@day_z@&"
+        tests = TEMPLATES_PATH / "AdventCode&@year@&/tests/tests_day_&@day_z@&"
         return {"input": scripts / "puzzle_input.txt.template",
                 "solution": scripts / "solution.py.template",
                 "tools": scripts / "tools.py.template",

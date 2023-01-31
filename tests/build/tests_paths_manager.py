@@ -36,7 +36,10 @@ class PathsTests(unittest.TestCase):
     @staticmethod
     def _get_template_path(name: str, script: bool) -> Path:
         """Get the expected absolute file path for the target template file."""
-        middle_path = "day_&@day_z@&" if script else "tests_day_&@day_z@&"
+        if script:
+            middle_path = "AdventCode&@year@&/src/aoc&@year@&/day_&@day_z@&"
+        else:
+            middle_path = f"AdventCode&@year@&/tests/tests_day_&@day_z@&"
         return TEMPLATES_PATH / middle_path / f"{name}.template"
 
     def test_input_buildable_path(self):
