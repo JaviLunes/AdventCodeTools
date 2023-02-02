@@ -34,6 +34,33 @@ class PathsData:
         self._replace_map = {"&@year@&": str(self._year), "&@day_z@&": str(self.day_z)}
         self._files_map = self._build_file_paths()
         self._templates_map = self._build_templates()
+        self._validate_assumptions()
+
+    def _validate_assumptions(self):
+        """Assert that all assumptions required by this object are true."""
+        self._validate_only_project_path_at_top_of_tree()
+        self._validate_only_one_src_directory_in_nested_tree()
+        self._validate_scripts_in_src()
+
+    @staticmethod
+    def _validate_only_project_path_at_top_of_tree():
+        """At the templates' path, there must be only the built project's base path."""
+        paths = list(TEMPLATES_PATH.glob("*"))
+        assert len(paths) == 1
+        assert paths[0].is_dir()
+
+    @staticmethod
+    def _validate_only_one_src_directory_in_nested_tree():
+        """There must be only one 'src' dir nested inside the templates' base path."""
+        paths = list(TEMPLATES_PATH.rglob("src"))
+        assert len(paths) == 1
+        assert paths[0].is_dir()
+
+    def _validate_scripts_in_src(self):
+        """Buildable non-test files must be nested inside a src path."""
+        for file_path in self._files_map.values():
+            if "tests" not in file_path.parts:
+                assert file_path.is_relative_to(self.path_src)
 
     def _replace_marks(self, template_str: str) -> str:
         """Replace all '&@X@&' marks in a template string by their matching values."""
