@@ -20,9 +20,9 @@ def read_puzzle_input(input_file: Path, encoding: str = "utf-8") -> list[str]:
 
 class AdventSolver:
     """Manage puzzle solving tasks."""
-    def __init__(self, year: int, calendar: AdventCalendar, build_base_path: Path):
-        self.paths = PathsManager(year=year, build_base_path=build_base_path)
+    def __init__(self, calendar: AdventCalendar, paths: PathsManager):
         self.calendar = calendar
+        self.paths = paths
 
     def print_day(self, day: int):
         """Print the solutions and execution time for the target day's puzzles."""

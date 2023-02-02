@@ -8,15 +8,15 @@ from pathlib import Path
 import pandas
 
 # Local application imports:
-from aoc_tools.puzzle_solving import AdventSolver
+from aoc_tools.build.paths_manager import PathsManager
 
 
 class AdventCalendar:
     """Manage the puzzle calendar table included in the README.md file."""
-    def __init__(self, readme_file: Path, solver: AdventSolver,
+    def __init__(self, readme_file: Path, paths: PathsManager,
                  data: pandas.DataFrame = None):
+        self.paths = paths
         self._readme_file = readme_file
-        self._solver = solver
         self._table_start = self._find_table_start()
         self._data = data if data is not None else self._load_from_readme()
 
@@ -61,13 +61,13 @@ class AdventCalendar:
         return [f"Day {i + 1}: {name}" for i, name in enumerate(self._data["Puzzle"])]
 
     @classmethod
-    def from_scratch(cls, readme_file: Path, solver: AdventSolver) -> "AdventCalendar":
+    def from_scratch(cls, readme_file: Path, paths: PathsManager) -> "AdventCalendar":
         """Create a new, empty AdventCalendar, overwriting the one in the README file."""
         empty_df = pandas.DataFrame(
             data="-", columns=["Puzzle", "Stars", "Solution 1", "Solution 2", "Time"],
             index=pandas.RangeIndex(start=1, stop=26, name="Day"))
-        calendar = AdventCalendar(data=empty_df, readme_file=readme_file, solver=solver)
-        calendar._write_to_readme()
+        calendar = AdventCalendar(data=empty_df, readme_file=readme_file, paths=paths)
+        calendar.write_to_readme()
         return calendar
 
     def update_day(self, day: int, s1: str | None, s2: str | None, timing: float):
@@ -113,7 +113,7 @@ class AdventCalendar:
     def _add_hyper_links(self, data_frame: pandas.DataFrame) -> pandas.DataFrame:
         """Add hyperlinks to puzzle pages and to solution scripts in GitHub."""
         for idx, (day, puzzle, stars, s1, s2, timing) in data_frame.iterrows():
-            paths_data = self._solver.paths.get_daily_data(day=day)
+            paths_data = self.paths.get_daily_data(day=day)
             link_puzzle = paths_data.url_advent_puzzle
             link_solution = paths_data.url_github_solution
             data_frame.loc[idx, "Day"] = f"[{day}]({link_puzzle})"
