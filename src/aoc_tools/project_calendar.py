@@ -70,27 +70,15 @@ class AdventCalendar:
         calendar._write_to_readme()
         return calendar
 
-    def register_all_days(self):
-        """Add the data for each day's puzzles to the README file's calendar."""
-        for day in range(1, len(self._solver.puzzles) + 1):
-            self._solve_day(day=day)
-        self._write_to_readme()
-
-    def register_day(self, day: int):
-        """Add the data for the target day's puzzles to the README file's calendar."""
-        self._solve_day(day=day)
-        self._write_to_readme()
-
-    def _solve_day(self, day: int):
+    def update_day(self, day: int, s1: str | None, s2: str | None, timing: float):
         """Fill rows with missing solutions or timing values."""
-        s1, s2, timing = self._solver.solve_day(day=day)
         self._data.loc[day, "Solution 1"] = s1 or "-"
         self._data.loc[day, "Solution 2"] = s2 or "-"
         self._data.loc[day, "Time"] = timing or "-"
         stars = ":star::star:" if s1 and s2 else ":star:" if s1 or s2 else "-"
         self._data.loc[day, "Stars"] = stars
 
-    def _write_to_readme(self):
+    def write_to_readme(self):
         """Replace the calendar table in the README file with the stored one."""
         with open(self._readme_file, mode="r", encoding="utf-8") as file:
             lines = file.readlines()
