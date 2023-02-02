@@ -8,6 +8,7 @@ from time import time
 
 # Local application imports:
 from aoc_tools.build.paths_manager import PathsManager
+from aoc_tools.project_calendar import AdventCalendar
 
 # Define custom types:
 PartSolution = int | str | None
@@ -22,14 +23,13 @@ def read_puzzle_input(input_file: Path, encoding: str = "utf-8") -> list[str]:
 
 class AdventSolver:
     """Manage puzzle solving tasks."""
-    def __init__(self, year: int, puzzle_names: list[str], build_base_path: Path):
-        self.year = year
+    def __init__(self, year: int, calendar: AdventCalendar, build_base_path: Path):
         self.paths = PathsManager(year=year, build_base_path=build_base_path)
-        self.puzzles = puzzle_names
+        self.calendar = calendar
 
     def print_day(self, day: int):
         """Print the solutions and execution time for the target day's puzzles."""
-        print(self.puzzles[day - 1])
+        print(self.calendar.puzzle_names[day - 1])
         solution_1, solution_2, timing = self.solve_day(day=day)
         if solution_1 is None:
             print("    The first puzzle remains unsolved!")
@@ -44,7 +44,7 @@ class AdventSolver:
 
     def print_all_days(self):
         """Print the solutions and execution times for each day's puzzles."""
-        for day in range(1, len(self.puzzles) + 1):
+        for day in range(1, len(self.calendar.puzzle_names) + 1):
             self.print_day(day=day)
 
     def solve_day(self, day: int) -> tuple[PartSolution, PartSolution, str]:

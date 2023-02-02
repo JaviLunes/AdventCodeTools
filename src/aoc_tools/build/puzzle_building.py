@@ -6,6 +6,7 @@ from pathlib import Path
 
 # Local application imports:
 from aoc_tools.build.paths_manager import PathsManager, PathsData
+from aoc_tools.project_calendar import AdventCalendar
 
 # Define custom types:
 ReplaceMap = dict[str, str]
@@ -13,10 +14,10 @@ ReplaceMap = dict[str, str]
 
 class AdventBuilder:
     """Manage template file building tasks."""
-    def __init__(self, year: int, puzzle_names: list[str], build_base_path: Path):
+    def __init__(self, year: int, calendar: AdventCalendar, build_base_path: Path):
         self.year = year
         self.paths = PathsManager(year=year, build_base_path=build_base_path)
-        self.puzzles = puzzle_names
+        self.calendar = calendar
 
     def build_templates(self, day: int):
         """Built input, tools, solving and tests template files for the provided day."""
@@ -30,7 +31,7 @@ class AdventBuilder:
 
     def build_all_templates(self):
         """Built input, tools, solving and tests template files for all days."""
-        for day in range(1, len(self.puzzles) + 1):
+        for day in range(1, len(self.calendar.puzzle_names) + 1):
             self.build_templates(day=day)
 
     @staticmethod
@@ -45,7 +46,7 @@ class AdventBuilder:
     def _get_replace_map(self, day: int, paths_data: PathsData) -> ReplaceMap:
         """Map string marks used in the template files to their matching values."""
         return {
-            "&@puzzle_name@&": self.puzzles[day - 1],
+            "&@puzzle_name@&": self.calendar.puzzle_names[day - 1],
             "&@this_package@&": paths_data.this_package,
             "&@year@&": str(self.year),
             "&@day@&": str(day),
