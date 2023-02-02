@@ -49,9 +49,9 @@ class AdventSolver:
 
     def solve_day(self, day: int) -> tuple[int | None, int | None, str]:
         """Get the solutions and execution time for the target day's puzzles."""
+        paths_data = self.paths.get_daily_data(day=day)
         try:
-            solution_module = self.paths.get_module_solution(day=day)
-            module = import_module(solution_module)
+            module = import_module(paths_data.module_solution)
         except ModuleNotFoundError:
             return None, None, ""
         start = time()
@@ -200,8 +200,9 @@ class AdventCalendar:
     def _add_hyper_links(self, data_frame: pandas.DataFrame) -> pandas.DataFrame:
         """Add hyperlinks to puzzle pages and to solution scripts in GitHub."""
         for idx, (day, puzzle, stars, s1, s2, timing) in data_frame.iterrows():
-            link_puzzle = self._solver.paths.get_url_advent_puzzle(day=day)
-            link_solution = self._solver.paths.get_url_github_solution(day=day)
+            paths_data = self._solver.paths.get_daily_data(day=day)
+            link_puzzle = paths_data.url_advent_puzzle
+            link_solution = paths_data.url_github_solution
             data_frame.loc[idx, "Day"] = f"[{day}]({link_puzzle})"
             data_frame.loc[idx, "Puzzle"] = f"[{puzzle}]({link_puzzle})"
             if s1 != "-" or s2 != "-":

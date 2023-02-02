@@ -1,5 +1,5 @@
 # coding=utf-8
-"""Tests for the &@puzzle_name@& puzzle."""
+"""Solution tests for the &@puzzle_name@& puzzle."""
 
 # Standard library imports:
 from pathlib import Path
@@ -10,12 +10,6 @@ from &@this_package@& import read_puzzle_input
 
 # Local application imports:
 from &@tools_module@& import ...
-
-
-class ExampleTests(unittest.TestCase):
-    def setUp(self) -> None:
-        """Define objects to be tested."""
-        ...
 
 
 class SolutionTests(unittest.TestCase):
