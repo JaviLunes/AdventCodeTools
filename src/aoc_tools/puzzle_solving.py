@@ -9,6 +9,9 @@ from time import time
 # Local application imports:
 from aoc_tools.build.paths_manager import PathsManager
 
+# Define custom types:
+PartSolution = int | str | None
+
 
 def read_puzzle_input(input_file: Path, encoding: str = "utf-8") -> list[str]:
     """Read, process and return each line in the input file for the target day."""
@@ -44,7 +47,7 @@ class AdventSolver:
         for day in range(1, len(self.puzzles) + 1):
             self.print_day(day=day)
 
-    def solve_day(self, day: int) -> tuple[int | None, int | None, str]:
+    def solve_day(self, day: int) -> tuple[PartSolution, PartSolution, str]:
         """Get the solutions and execution time for the target day's puzzles."""
         paths_data = self.paths.get_daily_data(day=day)
         try:
