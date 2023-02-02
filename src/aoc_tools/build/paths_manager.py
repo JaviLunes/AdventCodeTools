@@ -15,23 +15,23 @@ PUZZLE_FILE_NAME_TOOLS = "tools.py"
 
 class PathsManager:
     """Centralize the creation of PathsData containers."""
-    __slots__ = ["_year", "_base_path"]
+    __slots__ = ["year", "_base_path"]
 
     def __init__(self, year: int, build_base_path: Path):
-        self._year = year
+        self.year = year
         self._base_path = build_base_path
 
     def get_daily_data(self, day: int) -> "PathsData":
         """Generate a PathsData container for the target day."""
-        return PathsData(year=self._year, day=day, build_base_path=self._base_path)
+        return PathsData(year=self.year, day=day, build_base_path=self._base_path)
 
 
 class PathsData:
     """Provide paths, import strings, templates and URLs for a single target day."""
     def __init__(self, year: int, day: int, build_base_path: Path):
-        self._year, self._day = year, day
+        self.year, self.day = year, day
         self._base_path = build_base_path
-        self._replace_map = {"&@year@&": str(self._year), "&@day_z@&": str(self.day_z)}
+        self._replace_map = {"&@year@&": str(self.year), "&@day_z@&": str(self.day_z)}
         self._files_map = self._build_file_paths()
         self._templates_map = self._build_templates()
         self._validate_assumptions()
@@ -136,13 +136,13 @@ class PathsData:
     @property
     def url_advent_puzzle(self) -> str:
         """URL to the Advent of Code web page with the puzzle description."""
-        return f"https://adventofcode.com/{self._year}/day/{self._day}"
+        return f"https://adventofcode.com/{self.year}/day/{self.day}"
 
     @property
     def url_github_solution(self) -> str:
         """URL to the GitHub repository page with the solution script."""
         return f"https://github.com/JaviLunes/AdventCode$year/tree/master" \
-               f"/src/aoc{self._year}/day_{self.day_z}/solution.py"
+               f"/src/aoc{self.year}/day_{self.day_z}/solution.py"
 
     @property
     def this_package(self) -> str:
@@ -164,4 +164,4 @@ class PathsData:
     @property
     def day_z(self) -> str:
         """Leading-zero-filled string version of the target day."""
-        return str(self._day).zfill(2)
+        return str(self.day).zfill(2)
