@@ -18,7 +18,7 @@ class AdventCalendar:
         self._readme_file = readme_file
         self._solver = solver
         self._table_start = self._find_table_start()
-        self.data = data if data is not None else self._load_from_readme()
+        self._data = data if data is not None else self._load_from_readme()
 
     def _find_table_start(self) -> int:
         """Locate the first line numbers of the README file's puzzle calendar table."""
@@ -55,6 +55,11 @@ class AdventCalendar:
         df["Day"] = df["Day"].astype(int)
         return df.set_index(keys="Day")
 
+    @property
+    def puzzle_names(self) -> list[str]:
+        """List the names (including day numbers) of all the daily puzzles."""
+        return [f"Day {i + 1}: {name}" for i, name in enumerate(self._data["Puzzle"])]
+
     @classmethod
     def from_scratch(cls, readme_file: Path, solver: AdventSolver) -> "AdventCalendar":
         """Create a new, empty AdventCalendar, overwriting the one in the README file."""
@@ -79,11 +84,11 @@ class AdventCalendar:
     def _solve_day(self, day: int):
         """Fill rows with missing solutions or timing values."""
         s1, s2, timing = self._solver.solve_day(day=day)
-        self.data.loc[day, "Solution 1"] = s1 or "-"
-        self.data.loc[day, "Solution 2"] = s2 or "-"
-        self.data.loc[day, "Time"] = timing or "-"
+        self._data.loc[day, "Solution 1"] = s1 or "-"
+        self._data.loc[day, "Solution 2"] = s2 or "-"
+        self._data.loc[day, "Time"] = timing or "-"
         stars = ":star::star:" if s1 and s2 else ":star:" if s1 or s2 else "-"
-        self.data.loc[day, "Stars"] = stars
+        self._data.loc[day, "Stars"] = stars
 
     def _write_to_readme(self):
         """Replace the calendar table in the README file with the stored one."""
@@ -95,7 +100,7 @@ class AdventCalendar:
 
     def _table_as_lines(self) -> list[str]:
         """Convert the stored calendar table into text lines."""
-        data = self.data.copy(deep=True).reset_index(drop=False)
+        data = self._data.copy(deep=True).reset_index(drop=False)
         total_time = sum(self._solver.parse_timing(value=value) for value in data["Time"])
         total_stars = sum(data["Stars"].str.count(":star:"))
         totals = pandas.DataFrame(data="-", columns=data.columns, index=[0])
