@@ -101,12 +101,12 @@ class AdventCalendar:
     def _table_as_lines(self) -> list[str]:
         """Convert the stored calendar table into text lines."""
         data = self._data.copy(deep=True).reset_index(drop=False)
-        total_time = sum(self._solver.parse_timing(value=value) for value in data["Time"])
+        total_time = sum(self.parse_timing(value=value) for value in data["Time"])
         total_stars = sum(data["Stars"].str.count(":star:"))
         totals = pandas.DataFrame(data="-", columns=data.columns, index=[0])
         totals.loc[:, "Day"] = "**Totals**"
         totals.loc[:, "Stars"] = f"**{total_stars}**:star:"
-        totals.loc[:, "Time"] = f"**{self._solver.format_timing(value=total_time)}**"
+        totals.loc[:, "Time"] = f"**{self.format_timing(value=total_time)}**"
         data = self._add_puzzle_names(data_frame=data)
         data = self._add_hyper_links(data_frame=data)
         data = pandas.concat(objs=[data, totals], ignore_index=True)
@@ -142,3 +142,34 @@ class AdventCalendar:
         """Remove web hyperlinks for all cells."""
         rx_find, rx_sub = r"^\[(?P<value>.+)]\(.+\)$", r"\g<value>"
         return data_frame.replace(to_replace=rx_find, value=rx_sub, regex=True)
+
+    @staticmethod
+    def format_timing(value: float) -> str:
+        """Format a time value in seconds into a time string with sensitive units."""
+        if value >= 1.5 * 3600:
+            return f"{value / 3600:.2f} h"
+        elif value >= 1.5 * 60:
+            return f"{value / 60:.2f} min"
+        elif value <= 1e-4:
+            return f"{value * 1e6:.2f} μs"
+        elif value <= 1e-1:
+            return f"{value * 1e3:.2f} ms"
+        else:
+            return f"{value:.2f} s"
+
+    @staticmethod
+    def parse_timing(value: str) -> float:
+        """Convert a time string with sensitive units into a time value in seconds."""
+        if value == "-":
+            return 0
+        value, units = value.split(" ")
+        if units == "h":
+            return float(value) * 3600
+        elif units == "min":
+            return float(value) * 60
+        elif units == "μs":
+            return float(value) / 1e6
+        elif units == "ms":
+            return float(value) / 1e3
+        else:
+            return float(value)

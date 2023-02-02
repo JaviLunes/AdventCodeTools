@@ -31,6 +31,7 @@ class AdventSolver:
         """Print the solutions and execution time for the target day's puzzles."""
         print(self.calendar.puzzle_names[day - 1])
         solution_1, solution_2, timing = self.solve_day(day=day)
+        timing = self.calendar.format_timing(value=timing)
         if solution_1 is None:
             print("    The first puzzle remains unsolved!")
         else:
@@ -47,45 +48,13 @@ class AdventSolver:
         for day in range(1, len(self.calendar.puzzle_names) + 1):
             self.print_day(day=day)
 
-    def solve_day(self, day: int) -> tuple[PartSolution, PartSolution, str]:
+    def solve_day(self, day: int) -> tuple[PartSolution, PartSolution, float]:
         """Get the solutions and execution time for the target day's puzzles."""
         paths_data = self.paths.get_daily_data(day=day)
         try:
             module = import_module(paths_data.module_solution)
         except ModuleNotFoundError:
-            return None, None, ""
+            return None, None, 0
         start = time()
         solution_1, solution_2 = module.compute_solution()
-        timing = self.format_timing(value=time() - start)
-        return solution_1, solution_2, timing
-
-    @staticmethod
-    def format_timing(value: float) -> str:
-        """Format a time value in seconds into a time string with sensitive units."""
-        if value >= 1.5 * 3600:
-            return f"{value / 3600:.2f} h"
-        elif value >= 1.5 * 60:
-            return f"{value / 60:.2f} min"
-        elif value <= 1e-4:
-            return f"{value * 1e6:.2f} μs"
-        elif value <= 1e-1:
-            return f"{value * 1e3:.2f} ms"
-        else:
-            return f"{value:.2f} s"
-
-    @staticmethod
-    def parse_timing(value: str) -> float:
-        """Convert a time string with sensitive units into a time value in seconds."""
-        if value == "-":
-            return 0
-        value, units = value.split(" ")
-        if units == "h":
-            return float(value) * 3600
-        elif units == "min":
-            return float(value) * 60
-        elif units == "μs":
-            return float(value) / 1e6
-        elif units == "ms":
-            return float(value) / 1e3
-        else:
-            return float(value)
+        return solution_1, solution_2, time() - start
