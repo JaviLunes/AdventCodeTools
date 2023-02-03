@@ -81,8 +81,8 @@ class AdventCalendar:
 
     def _get_page_content(self, day: int) -> bytes | None:
         """Download a web page and return its content in HTML form."""
-        paths_data = self.paths.get_daily_data(day=day)
-        request = requests.get(paths_data.url_advent_puzzle)
+        self.paths.day = day
+        request = requests.get(self.paths.url_advent_puzzle)
         if not request.status_code == 200:
             return None
         return request.content
@@ -157,9 +157,9 @@ class AdventCalendar:
     def _add_hyper_links(self, data_frame: pandas.DataFrame) -> pandas.DataFrame:
         """Add hyperlinks to puzzle pages and to solution scripts in GitHub."""
         for idx, (day, puzzle, stars, s1, s2, timing) in data_frame.iterrows():
-            paths_data = self.paths.get_daily_data(day=day)
-            link_puzzle = paths_data.url_advent_puzzle
-            link_solution = paths_data.url_github_solution
+            self.paths.day = day
+            link_puzzle = self.paths.url_advent_puzzle
+            link_solution = self.paths.url_github_solution
             data_frame.loc[idx, "Day"] = f"[{day}]({link_puzzle})"
             data_frame.loc[idx, "Puzzle"] = f"[{puzzle}]({link_puzzle})"
             if s1 != "-" or s2 != "-":

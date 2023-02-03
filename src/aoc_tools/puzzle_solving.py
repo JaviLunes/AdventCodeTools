@@ -60,9 +60,9 @@ class AdventSolver:
 
     def _solve_day(self, day: int) -> tuple[str | None, str | None, float]:
         """Get the solutions and execution time for the target day's puzzles."""
-        paths_data = self.paths.get_daily_data(day=day)
+        self.paths.day = day
         try:
-            module = import_module(paths_data.module_solution)
+            module = import_module(self.paths.module_solution)
         except ModuleNotFoundError:
             return None, None, 0
         start = time()

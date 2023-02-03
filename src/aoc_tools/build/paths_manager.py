@@ -14,27 +14,41 @@ PUZZLE_FILE_NAME_TOOLS = "tools.py"
 
 
 class PathsManager:
-    """Centralize the creation of PathsData containers."""
-    __slots__ = ["year", "_base_path"]
-
-    def __init__(self, year: int, build_base_path: Path):
-        self.year = year
+    """Provide paths, import strings and URLs required in an Advent of Code project."""
+    def __init__(self, build_base_path: Path, year: int, day: int = 1):
+        self._year, self._day = year, day
         self._base_path = build_base_path
-
-    def get_daily_data(self, day: int) -> "PathsData":
-        """Generate a PathsData container for the target day."""
-        return PathsData(year=self.year, day=day, build_base_path=self._base_path)
-
-
-class PathsData:
-    """Provide paths, import strings, templates and URLs for a single target day."""
-    def __init__(self, year: int, day: int, build_base_path: Path):
-        self.year, self.day = year, day
-        self._base_path = build_base_path
-        self._replace_map = {"&@year@&": str(self.year), "&@day_z@&": str(self.day_z)}
-        self._files_map = self._build_file_paths()
-        self._templates_map = self._build_templates()
+        self._build_file_paths()
+        self._build_templates()
         self._validate_assumptions()
+
+    def _build_replace_map(self) -> dict[str, str]:
+        """Create a map of template marks to their values using current year and day."""
+        return {"&@year@&": str(self._year), "&@day@&": str(self._day),
+                "&@day_z@&": str(self.day_z)}
+
+    def _replace_marks(self, template_str: str) -> str:
+        """Replace all '&@X@&' marks in a template string by their matching values."""
+        for mark, value in self._build_replace_map().items():
+            template_str = template_str.replace(mark, value)
+        return template_str
+
+    @staticmethod
+    def _explore_template_tree() -> list[Path]:
+        """Find all buildable template files nested inside the base template path."""
+        return list(TEMPLATES_PATH.rglob(pattern="*.template"))
+
+    def _build_file_paths(self):
+        """Map the absolute file path of each known buildable file to a name."""
+        paths = self._explore_template_tree()
+        paths = [Path(self._replace_marks(template_str=str(p))) for p in paths]
+        paths = [p.with_suffix("") for p in paths]
+        paths = [self._base_path / p.relative_to(TEMPLATES_PATH) for p in paths]
+        self._files_map = {path.name: path for path in paths}
+
+    def _build_templates(self):
+        """Map the absolute template path of each known buildable file to a name."""
+        self._templates_map = {path.name: path for path in self._explore_template_tree()}
 
     def _validate_assumptions(self):
         """Assert that all assumptions required by this object are true."""
@@ -62,28 +76,32 @@ class PathsData:
             if "tests" not in file_path.parts:
                 assert file_path.is_relative_to(self.path_src)
 
-    def _replace_marks(self, template_str: str) -> str:
-        """Replace all '&@X@&' marks in a template string by their matching values."""
-        for mark, value in self._replace_map.items():
-            template_str = template_str.replace(mark, value)
-        return template_str
+    @property
+    def year(self) -> int:
+        """Year currently used by this PathsManager."""
+        return self._year
 
-    @staticmethod
-    def _explore_template_tree() -> list[Path]:
-        """Find all buildable template files nested inside the base template path."""
-        return list(TEMPLATES_PATH.rglob(pattern="*.template"))
+    @year.setter
+    def year(self, value: int):
+        """Change the year currently used by this PathsManager."""
+        self._year = value
+        self._build_file_paths()
 
-    def _build_file_paths(self) -> dict[str, Path]:
-        """Map the absolute file path of each known buildable file to a name."""
-        paths = self._explore_template_tree()
-        paths = [Path(self._replace_marks(template_str=str(p))) for p in paths]
-        paths = [p.with_suffix("") for p in paths]
-        paths = [self._base_path / p.relative_to(TEMPLATES_PATH) for p in paths]
-        return {path.name: path for path in paths}
+    @property
+    def day(self) -> int:
+        """Day currently used by this PathsManager."""
+        return self._day
 
-    def _build_templates(self) -> dict[str, Path]:
-        """Map the absolute template path of each known buildable file to a name."""
-        return {path.name: path for path in self._explore_template_tree()}
+    @day.setter
+    def day(self, value: int):
+        """Change the day currently used by this PathsManager."""
+        self._day = value
+        self._build_file_paths()
+
+    @property
+    def day_z(self) -> str:
+        """Leading-zero-filled string version of the target day."""
+        return str(self.day).zfill(2)
 
     @property
     def file_paths(self) -> list[Path]:
@@ -160,8 +178,3 @@ class PathsData:
         """The source path of the built project package."""
         path = next(TEMPLATES_PATH.glob("*/src")).relative_to(TEMPLATES_PATH)
         return self._base_path / Path(self._replace_marks(str(path)))
-
-    @property
-    def day_z(self) -> str:
-        """Leading-zero-filled string version of the target day."""
-        return str(self.day).zfill(2)
