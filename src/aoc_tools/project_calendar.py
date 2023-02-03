@@ -2,10 +2,14 @@
 """Tool for reading and writing puzzle names and solution values and times."""
 
 # Standard library imports:
+import datetime
 from pathlib import Path
+import re
 
 # Third party imports:
+from bs4 import BeautifulSoup
 import pandas
+import requests
 
 # Local application imports:
 from aoc_tools.build.paths_manager import PathsManager
@@ -19,6 +23,7 @@ class AdventCalendar:
         self._readme_file = readme_file
         self._table_start = self._find_table_start()
         self._data = data if data is not None else self._load_from_readme()
+        self._update_missing_names()
 
     def _find_table_start(self) -> int:
         """Locate the first line numbers of the README file's puzzle calendar table."""
@@ -54,6 +59,52 @@ class AdventCalendar:
         df = self._remove_hyper_links(data_frame=df)
         df["Day"] = df["Day"].astype(int)
         return df.set_index(keys="Day")
+
+    def _update_missing_names(self):
+        """Scrap and store missing puzzle names (if possible)."""
+        year, now = self.paths.year, self._get_current_time()
+        for i, day_name in enumerate(self.puzzle_names):
+            day = i + 1
+            name = day_name.split(": ")[1]
+            if name != "-":
+                continue
+            if datetime.datetime(year=year, month=12, day=day) > now:
+                continue
+            web_content = self._get_page_content(day=day)
+            page_title = self._scrap_html_text(web_content=web_content)
+            self._data.loc[day, "Puzzle"] = self._parse_name(text=page_title, day=day)
+
+    @staticmethod
+    def _get_current_time() -> datetime.datetime:
+        """Encapsulate the datetime.now function, for mock-testing purposes."""
+        return datetime.datetime.now()
+
+    def _get_page_content(self, day: int) -> bytes | None:
+        """Download a web page and return its content in HTML form."""
+        paths_data = self.paths.get_daily_data(day=day)
+        request = requests.get(paths_data.url_advent_puzzle)
+        if not request.status_code == 200:
+            return None
+        return request.content
+
+    @staticmethod
+    def _scrap_html_text(web_content: bytes | None) -> str | None:
+        """Extract the text of the title tag from the provided file."""
+        if web_content is None:
+            return "-"
+        soup = BeautifulSoup(markup=web_content, features="html5lib")
+        article_tag = soup.find("article", attrs={"class": "day-desc"})
+        return article_tag.find_next("h2").text
+
+    @staticmethod
+    def _parse_name(text: str | None, day: int) -> str:
+        """Check the scrapped text and extract the name of the daily puzzle."""
+        if text is None:
+            return "-"
+        rx = fr"^--- Day {day}: (?P<name>.+) ---$"
+        match = re.match(pattern=rx, string=text)
+        assert match is not None
+        return match["name"]
 
     @property
     def puzzle_names(self) -> list[str]:
@@ -95,7 +146,6 @@ class AdventCalendar:
         totals.loc[:, "Day"] = "**Totals**"
         totals.loc[:, "Stars"] = f"**{total_stars}**:star:"
         totals.loc[:, "Time"] = f"**{self.format_timing(value=total_time)}**"
-        data = self._add_puzzle_names(data_frame=data)
         data = self._add_hyper_links(data_frame=data)
         data = pandas.concat(objs=[data, totals], ignore_index=True)
         data.columns = [f"**{name}**" for name in data.columns]
@@ -103,12 +153,6 @@ class AdventCalendar:
             index=False, tablefmt="pipe",
             colalign=("center", "left", "center", "center", "center", "center"))
         return (text + "\n").splitlines(keepends=True)
-
-    def _add_puzzle_names(self, data_frame: pandas.DataFrame) -> pandas.DataFrame:
-        """Update the puzzle names from the global daily-names map."""
-        data_frame["Puzzle"] = [
-            name.split(": ")[1] if name != "-" else "-" for name in self._solver.puzzles]
-        return data_frame
 
     def _add_hyper_links(self, data_frame: pandas.DataFrame) -> pandas.DataFrame:
         """Add hyperlinks to puzzle pages and to solution scripts in GitHub."""
