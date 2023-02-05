@@ -5,7 +5,8 @@
 from pathlib import Path
 
 # Local application imports:
-from aoc_tools.build.paths_manager import PathsManager, PathsData
+from aoc_tools.build.paths_manager import PathsManager
+from aoc_tools.manage.project_calendar import AdventCalendar
 
 # Define custom types:
 ReplaceMap = dict[str, str]
@@ -13,16 +14,15 @@ ReplaceMap = dict[str, str]
 
 class AdventBuilder:
     """Manage template file building tasks."""
-    def __init__(self, year: int, puzzle_names: list[str], build_base_path: Path):
-        self.year = year
-        self.paths = PathsManager(year=year, build_base_path=build_base_path)
-        self.puzzles = puzzle_names
+    def __init__(self, calendar: AdventCalendar, paths: PathsManager):
+        self.calendar = calendar
+        self.paths = paths
 
     def build_templates(self, day: int):
         """Built input, tools, solving and tests template files for the provided day."""
-        paths_data = self.paths.get_daily_data(day=day)
-        replace_map = self._get_replace_map(day=day, paths_data=paths_data)
-        zipped = zip(paths_data.file_paths, paths_data.file_templates)
+        self.paths.day = day
+        replace_map = self._get_replace_map()
+        zipped = zip(self.paths.file_paths, self.paths.file_templates)
         for file_path, template_file in zipped:
             file_lines = self._prepare_lines(
                 template_file=template_file, replace_map=replace_map)
@@ -30,7 +30,7 @@ class AdventBuilder:
 
     def build_all_templates(self):
         """Built input, tools, solving and tests template files for all days."""
-        for day in range(1, len(self.puzzles) + 1):
+        for day in range(1, len(self.calendar.puzzle_names) + 1):
             self.build_templates(day=day)
 
     @staticmethod
@@ -42,16 +42,16 @@ class AdventBuilder:
             lines_str = lines_str.replace(mark, value)
         return lines_str.split("|")
 
-    def _get_replace_map(self, day: int, paths_data: PathsData) -> ReplaceMap:
+    def _get_replace_map(self) -> ReplaceMap:
         """Map string marks used in the template files to their matching values."""
         return {
-            "&@puzzle_name@&": self.puzzles[day - 1],
-            "&@this_package@&": paths_data.this_package,
-            "&@year@&": str(self.year),
-            "&@day@&": str(day),
-            "&@input_from_solution@&": paths_data.path_input_from_solution,
-            "&@input_from_tests@&": paths_data.path_input_from_tests,
-            "&@tools_module@&": paths_data.module_tools}
+            "&@puzzle_name@&": self.calendar.puzzle_names[self.paths.day - 1],
+            "&@this_package@&": self.paths.this_package,
+            "&@year@&": str(self.paths.year),
+            "&@day@&": str(self.paths.day),
+            "&@input_from_solution@&": self.paths.path_input_from_solution,
+            "&@input_from_tests@&": self.paths.path_input_from_tests,
+            "&@tools_module@&": self.paths.module_tools}
 
     @staticmethod
     def write_file(file_path: Path, lines: list[str]):

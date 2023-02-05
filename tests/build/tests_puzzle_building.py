@@ -10,12 +10,12 @@ from typing import Callable
 # Local application imports:
 from aoc_tools.build.puzzle_building import AdventBuilder
 from aoc_tools.build.paths_manager import PathsManager
+from tests.manage.tests_project_calendar import build_test_calendar
 
 # Set constants:
-BUILDER = AdventBuilder(year=3057, build_base_path=Path(r"Z:"),
-                        puzzle_names=["Puzzle A", "puzzle B", "C-puzzle"])
-PATHS = PathsManager(year=3057, build_base_path=Path(r"Z:"))
-N_DAYS = len(BUILDER.puzzles)
+PATHS = PathsManager(build_base_path=Path(r"Z:"), year=3057)
+CALENDAR = build_test_calendar(year=PATHS.year)
+N_DAYS = len(CALENDAR.puzzle_names)
 
 # Define custom types:
 MockedMap = dict[int, list[tuple[Path, list[str]]]]
@@ -24,11 +24,12 @@ FilterLambda = Callable[[tuple[Path, list[str]]], bool]
 
 def mock_build_write() -> MockedMap:
     """Mock-write each file built for a single day, and register its path and lines."""
+    builder = AdventBuilder(calendar=CALENDAR, paths=PATHS)
     mock_kwargs_map = {}
-    attr = BUILDER.write_file.__name__
+    attr = builder.write_file.__name__
     for day in range(1, N_DAYS + 1):
-        with mock.patch.object(target=BUILDER, attribute=attr) as mocked_write:
-            BUILDER.build_templates(day=day)
+        with mock.patch.object(target=builder, attribute=attr) as mocked_write:
+            builder.build_templates(day=day)
         mock_kwargs_map[day] = [(call.kwargs["file_path"], call.kwargs["lines"])
                                 for call in mocked_write.call_args_list]
     return mock_kwargs_map
@@ -58,9 +59,9 @@ class BuildFileInputTests(unittest.TestCase):
     def test_file_path_is_as_expected(self):
         """Assert that the file path matches the expected write path."""
         for i in range(N_DAYS):
-            paths_data = PATHS.get_daily_data(day=i + 1)
+            PATHS.day = i + 1
             file_path, _ = self.mock_map[i + 1][0]
-            self.assertIn(file_path, paths_data.file_paths)
+            self.assertIn(file_path, PATHS.file_paths)
 
     def test_file_is_empty(self):
         """The target file must be created empty."""
@@ -86,25 +87,25 @@ class BuildFileSolutionTests(unittest.TestCase):
     def test_file_path_is_as_expected(self):
         """Assert that the file path matches the expected write path."""
         for i in range(N_DAYS):
-            paths_data = PATHS.get_daily_data(day=i + 1)
+            PATHS.day = i + 1
             file_path, _ = self.mock_map[i + 1][0]
-            self.assertIn(file_path, paths_data.file_paths)
+            self.assertIn(file_path, PATHS.file_paths)
 
     def test_puzzle_name_on_module_docstring(self):
         """The module docstring must include the full name of the target puzzle."""
         for i in range(N_DAYS):
             _, lines = self.mock_map[i + 1][0]
-            expected_name = BUILDER.puzzles[i]
+            expected_name = CALENDAR.puzzle_names[i]
             self.assertIn(expected_name, lines[1])
 
     def test_this_package_on_third_party_imports(self):
         """The imports from this package are built using the expected module pattern."""
         for i in range(N_DAYS):
-            paths_data = PATHS.get_daily_data(day=i + 1)
+            PATHS.day = i + 1
             _, lines = self.mock_map[i + 1][0]
-            expected_name = BUILDER.puzzles[i]
+            expected_name = CALENDAR.puzzle_names[i]
             self.assertIn(expected_name, lines[1])
-            expected_import = f"from {paths_data.this_package} import "
+            expected_import = f"from {PATHS.this_package} import "
             lines_start = lines.index("# Third party imports:\n") + 1
             lines_end = lines.index("\n", lines_start)
             for target_line in lines[lines_start:lines_end]:
@@ -113,9 +114,9 @@ class BuildFileSolutionTests(unittest.TestCase):
     def test_daily_tools_module_on_local_imports(self):
         """The tools module import path is built using the expected module pattern."""
         for i in range(N_DAYS):
-            paths_data = PATHS.get_daily_data(day=i + 1)
+            PATHS.day = i + 1
             _, lines = self.mock_map[i + 1][0]
-            module = paths_data.module_tools
+            module = PATHS.module_tools
             expected_import = f"from {module}"
             lines_start = lines.index("# Local application imports:\n") + 1
             lines_end = lines.index("\n", lines_start)
@@ -125,9 +126,9 @@ class BuildFileSolutionTests(unittest.TestCase):
     def test_input_file_relative_path(self):
         """Code the input file path and name using the expected path pattern."""
         for i in range(N_DAYS):
-            paths_data = PATHS.get_daily_data(day=i + 1)
+            PATHS.day = i + 1
             _, lines = self.mock_map[i + 1][0]
-            expected_path = paths_data.path_input_from_solution
+            expected_path = PATHS.path_input_from_solution
             line_mark = "    input_file = "
             target_line = list(filter(lambda a: a.startswith(line_mark), lines))[0]
             self.assertIn(expected_path, target_line)
@@ -149,15 +150,15 @@ class BuildFileToolsTests(unittest.TestCase):
     def test_file_path_is_as_expected(self):
         """Assert that the file path matches the expected write path."""
         for i in range(N_DAYS):
-            paths_data = PATHS.get_daily_data(day=i + 1)
+            PATHS.day = i + 1
             file_path, _ = self.mock_map[i + 1][0]
-            self.assertIn(file_path, paths_data.file_paths)
+            self.assertIn(file_path, PATHS.file_paths)
 
     def test_puzzle_name_on_module_docstring(self):
         """The module docstring must include the full name of the target puzzle."""
         for i in range(N_DAYS):
             _, lines = self.mock_map[i + 1][0]
-            expected_name = BUILDER.puzzles[i]
+            expected_name = CALENDAR.puzzle_names[i]
             self.assertIn(expected_name, lines[1])
 
 
@@ -177,15 +178,15 @@ class BuildFileTestsInitTests(unittest.TestCase):
     def test_file_path_is_as_expected(self):
         """Assert that the file path matches the expected write path."""
         for i in range(N_DAYS):
-            paths_data = PATHS.get_daily_data(day=i + 1)
+            PATHS.day = i + 1
             file_path, _ = self.mock_map[i + 1][0]
-            self.assertIn(file_path, paths_data.file_paths)
+            self.assertIn(file_path, PATHS.file_paths)
 
     def test_puzzle_name_on_module_docstring(self):
         """The module docstring must include the full name of the target puzzle."""
         for i in range(N_DAYS):
             _, lines = self.mock_map[i + 1][0]
-            expected_name = BUILDER.puzzles[i]
+            expected_name = CALENDAR.puzzle_names[i]
             self.assertIn(expected_name, lines[1])
 
 
@@ -205,22 +206,22 @@ class BuildFileTestsExampleTests(unittest.TestCase):
     def test_file_path_is_as_expected(self):
         """Assert that the file path matches the expected write path."""
         for i in range(N_DAYS):
-            paths_data = PATHS.get_daily_data(day=i + 1)
+            PATHS.day = i + 1
             file_path, _ = self.mock_map[i + 1][0]
-            self.assertIn(file_path, paths_data.file_paths)
+            self.assertIn(file_path, PATHS.file_paths)
 
     def test_puzzle_name_on_module_docstring(self):
         """The module docstring must include the full name of the target puzzle."""
         for i in range(N_DAYS):
             _, lines = self.mock_map[i + 1][0]
-            expected_name = BUILDER.puzzles[i]
+            expected_name = CALENDAR.puzzle_names[i]
             self.assertIn(expected_name, lines[1])
 
     def test_source_daily_module_on_local_imports(self):
         """The local application imports are built using the expected module pattern."""
         for i in range(N_DAYS):
-            paths_data = PATHS.get_daily_data(day=i + 1)
-            expected_import = f"from {paths_data.module_solution.rsplit('.', 1)[0]}."
+            PATHS.day = i + 1
+            expected_import = f"from {PATHS.module_solution.rsplit('.', 1)[0]}."
             _, lines = self.mock_map[i + 1][0]
             lines_start = lines.index("# Local application imports:\n") + 1
             lines_end = lines.index("\n", lines_start)
@@ -244,22 +245,22 @@ class BuildFileTestsSolutionTests(unittest.TestCase):
     def test_file_path_is_as_expected(self):
         """Assert that the file path matches the expected write path."""
         for i in range(N_DAYS):
-            paths_data = PATHS.get_daily_data(day=i + 1)
+            PATHS.day = i + 1
             file_path, _ = self.mock_map[i + 1][0]
-            self.assertIn(file_path, paths_data.file_paths)
+            self.assertIn(file_path, PATHS.file_paths)
 
     def test_puzzle_name_on_module_docstring(self):
         """The module docstring must include the full name of the target puzzle."""
         for i in range(N_DAYS):
             _, lines = self.mock_map[i + 1][0]
-            expected_name = BUILDER.puzzles[i]
+            expected_name = CALENDAR.puzzle_names[i]
             self.assertIn(expected_name, lines[1])
 
     def test_source_daily_module_on_local_imports(self):
         """The local application imports are built using the expected module pattern."""
         for i in range(N_DAYS):
-            paths_data = PATHS.get_daily_data(day=i + 1)
-            expected_import = f"from {paths_data.module_solution.rsplit('.', 1)[0]}."
+            PATHS.day = i + 1
+            expected_import = f"from {PATHS.module_solution.rsplit('.', 1)[0]}."
             _, lines = self.mock_map[i + 1][0]
             lines_start = lines.index("# Local application imports:\n") + 1
             lines_end = lines.index("\n", lines_start)
@@ -269,9 +270,9 @@ class BuildFileTestsSolutionTests(unittest.TestCase):
     def test_input_file_relative_path(self):
         """Code the input file path and name using the expected path pattern."""
         for i in range(N_DAYS):
-            paths_data = PATHS.get_daily_data(day=i + 1)
+            PATHS.day = i + 1
             _, lines = self.mock_map[i + 1][0]
-            expected_path = paths_data.path_input_from_tests
+            expected_path = PATHS.path_input_from_tests
             line_mark = "        input_file = "
             target_line = list(filter(lambda a: a.startswith(line_mark), lines))[0]
             self.assertIn(expected_path, target_line)
