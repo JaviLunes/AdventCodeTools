@@ -189,6 +189,20 @@ class PathsTests(unittest.TestCase):
             expected_path = BASE_PATH / f"AdventCode{YEAR}"
             self.assertEqual(expected_path, self.manager.path_project)
 
+    def test_source_path(self):
+        """Assert that the 'src' path is as expected."""
+        for day in DAYS:
+            self.manager.day = day
+            expected_path = BASE_PATH / f"AdventCode{YEAR}" / "src"
+            self.assertEqual(expected_path, self.manager.path_src)
+
+    def test_readme_path(self):
+        """Assert that the README file path is as expected."""
+        for day in DAYS:
+            self.manager.day = day
+            expected_path = BASE_PATH / f"AdventCode{YEAR}" / "README.md"
+            self.assertEqual(expected_path, self.manager.path_readme)
+
 
 class ModulesTests(unittest.TestCase):
     def setUp(self) -> None:

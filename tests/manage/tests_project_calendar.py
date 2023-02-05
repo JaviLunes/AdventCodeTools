@@ -25,7 +25,6 @@ class UpdateNamesTests(unittest.TestCase):
     def _build_temporary_calendar() -> AdventCalendar:
         """Create a new AdventCalendar without triggering undesired methods."""
         project_path = Path(r"Z:")
-        readme_file = project_path / f"MockedAdventCode{YEAR}" / "README.md"
         paths = PathsManager(year=YEAR, build_base_path=project_path)
         attr_1 = AdventCalendar._find_table_start.__name__
         attr_2 = AdventCalendar.write_to_readme.__name__
@@ -33,8 +32,7 @@ class UpdateNamesTests(unittest.TestCase):
         with mock.patch.object(target=AdventCalendar, attribute=attr_1):
             with mock.patch.object(target=AdventCalendar, attribute=attr_2):
                 with mock.patch.object(target=AdventCalendar, attribute=attr_3):
-                    return AdventCalendar.from_scratch(
-                        readme_file=readme_file, paths=paths)
+                    return AdventCalendar.from_scratch(paths=paths)
 
     def _update_days_with_mocked_connections(self, titles: list[str]) \
             -> tuple[mock.Mock, mock.Mock]:

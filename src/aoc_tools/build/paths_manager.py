@@ -11,6 +11,7 @@ PUZZLE_FILE_NAME_INPUT = "puzzle_input.txt"
 PUZZLE_FILE_NAME_SOLUTION = "solution.py"
 PUZZLE_FILE_NAME_TESTS = "tests_solution.py"
 PUZZLE_FILE_NAME_TOOLS = "tools.py"
+PROJECT_FILE_NAME_README = "README.md"
 
 
 class PathsManager:
@@ -114,6 +115,25 @@ class PathsManager:
         return list(self._templates_map.values())
 
     @property
+    def path_project(self) -> Path:
+        """The main path of the built project package."""
+        path = next(TEMPLATES_PATH.glob("*")).relative_to(TEMPLATES_PATH)
+        return self._base_path / Path(self._replace_marks(str(path)))
+
+    @property
+    def path_src(self) -> Path:
+        """The source path of the built project package."""
+        path = next(TEMPLATES_PATH.glob("*/src")).relative_to(TEMPLATES_PATH)
+        return self._base_path / Path(self._replace_marks(str(path)))
+
+    @property
+    def path_readme(self) -> Path:
+        """The file path of the built project's README file."""
+        path = next(TEMPLATES_PATH.rglob(PROJECT_FILE_NAME_README))
+        path = path.relative_to(TEMPLATES_PATH)
+        return self._base_path / Path(self._replace_marks(str(path)))
+
+    @property
     def path_input_from_solution(self) -> str:
         """File path to the target day's input file from the solution's file path."""
         return self._path_target_from_source(
@@ -166,15 +186,3 @@ class PathsManager:
     def this_package(self) -> str:
         """The name of this Python package."""
         return "aoc_tools"
-
-    @property
-    def path_project(self) -> Path:
-        """The main path of the built project package."""
-        path = next(TEMPLATES_PATH.glob("*")).relative_to(TEMPLATES_PATH)
-        return self._base_path / Path(self._replace_marks(str(path)))
-
-    @property
-    def path_src(self) -> Path:
-        """The source path of the built project package."""
-        path = next(TEMPLATES_PATH.glob("*/src")).relative_to(TEMPLATES_PATH)
-        return self._base_path / Path(self._replace_marks(str(path)))

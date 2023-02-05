@@ -3,7 +3,6 @@
 
 # Standard library imports:
 import datetime
-from pathlib import Path
 import re
 
 # Third party imports:
@@ -17,17 +16,15 @@ from aoc_tools.build.paths_manager import PathsManager
 
 class AdventCalendar:
     """Manage the puzzle calendar table included in the README.md file."""
-    def __init__(self, readme_file: Path, paths: PathsManager,
-                 data: pandas.DataFrame = None):
+    def __init__(self, paths: PathsManager, data: pandas.DataFrame = None):
         self.paths = paths
-        self._readme_file = readme_file
         self._table_start = self._find_table_start()
         self._data = data if data is not None else self._load_from_readme()
         self._update_missing_names()
 
     def _find_table_start(self) -> int:
         """Locate the first line numbers of the README file's puzzle calendar table."""
-        with open(self._readme_file, mode="r") as file:
+        with open(self.paths.path_readme, mode="r") as file:
             lines = file.readlines()
         section_found = True
         for n, line in enumerate(lines):
@@ -43,7 +40,7 @@ class AdventCalendar:
 
     def _extract_readme_rows(self) -> list[str]:
         """Extract all the puzzle calendar lines printed in the README file."""
-        with open(self._readme_file, mode="r", encoding="utf-8") as file:
+        with open(self.paths.path_readme, mode="r", encoding="utf-8") as file:
             lines = file.readlines()
         headers = lines[self._table_start]
         data_lines = lines[self._table_start + 2:self._table_start + 27]
@@ -112,12 +109,12 @@ class AdventCalendar:
         return [f"Day {i + 1}: {name}" for i, name in enumerate(self._data["Puzzle"])]
 
     @classmethod
-    def from_scratch(cls, readme_file: Path, paths: PathsManager) -> "AdventCalendar":
+    def from_scratch(cls, paths: PathsManager) -> "AdventCalendar":
         """Create a new, empty AdventCalendar, overwriting the one in the README file."""
         empty_df = pandas.DataFrame(
             data="-", columns=["Puzzle", "Stars", "Solution 1", "Solution 2", "Time"],
             index=pandas.RangeIndex(start=1, stop=26, name="Day"))
-        calendar = AdventCalendar(data=empty_df, readme_file=readme_file, paths=paths)
+        calendar = AdventCalendar(data=empty_df, paths=paths)
         calendar.write_to_readme()
         return calendar
 
@@ -131,10 +128,10 @@ class AdventCalendar:
 
     def write_to_readme(self):
         """Replace the calendar table in the README file with the stored one."""
-        with open(self._readme_file, mode="r", encoding="utf-8") as file:
+        with open(self.paths.path_readme, mode="r", encoding="utf-8") as file:
             lines = file.readlines()
         lines[self._table_start:self._table_start + 29] = self._table_as_lines()
-        with open(self._readme_file, mode="w", encoding="utf-8") as file:
+        with open(self.paths.path_readme, mode="w", encoding="utf-8") as file:
             file.writelines(lines)
 
     def _table_as_lines(self) -> list[str]:
