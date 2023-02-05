@@ -11,28 +11,27 @@ from unittest import mock
 from aoc_tools.project_calendar import AdventCalendar
 from aoc_tools.build.paths_manager import PathsManager
 
-# Set constants:
-YEAR = 2022
+
+# noinspection PyProtectedMember
+def build_test_calendar(year: int) -> AdventCalendar:
+    """Create a new AdventCalendar without triggering read/write/scrap methods."""
+    paths = PathsManager(year=year, build_base_path=Path(r"Z:"))
+    target = AdventCalendar
+    attr_read = target._read_readme.__name__
+    attr_write = target._write_readme.__name__
+    attr_update = target._update_missing_names.__name__
+    lines = ["### Puzzle calendar:\n", "| "]
+    with mock.patch.object(target=target, attribute=attr_read, return_value=lines):
+        with mock.patch.object(target=target, attribute=attr_write):
+            with mock.patch.object(target=target, attribute=attr_update):
+                return AdventCalendar.from_scratch(paths=paths)
 
 
 class UpdateNamesTests(unittest.TestCase):
     def setUp(self) -> None:
         """Define tools to be tested."""
-        self.calendar = self._build_temporary_calendar()
+        self.calendar = build_test_calendar(year=2022)
         self.assertListEqual(["-"] * 25, list(self.calendar._data["Puzzle"]))
-
-    @staticmethod
-    def _build_temporary_calendar() -> AdventCalendar:
-        """Create a new AdventCalendar without triggering undesired methods."""
-        project_path = Path(r"Z:")
-        paths = PathsManager(year=YEAR, build_base_path=project_path)
-        attr_1 = AdventCalendar._find_table_start.__name__
-        attr_2 = AdventCalendar.write_to_readme.__name__
-        attr_3 = AdventCalendar._update_missing_names.__name__
-        with mock.patch.object(target=AdventCalendar, attribute=attr_1):
-            with mock.patch.object(target=AdventCalendar, attribute=attr_2):
-                with mock.patch.object(target=AdventCalendar, attribute=attr_3):
-                    return AdventCalendar.from_scratch(paths=paths)
 
     def _update_days_with_mocked_connections(self, titles: list[str]) \
             -> tuple[mock.Mock, mock.Mock]:
@@ -74,7 +73,7 @@ class UpdateNamesTests(unittest.TestCase):
         titles = [f"--- Day {i + 1}: Puzzle {i + 1} ---" for i in range(25)]
         target = self.calendar
         attr = target._get_current_time.__name__
-        mocked_dt = datetime.datetime(year=YEAR, month=12, day=15, hour=0)
+        mocked_dt = datetime.datetime(year=target.paths.year, month=12, day=15, hour=0)
         with mock.patch.object(target=target, attribute=attr, return_value=mocked_dt):
             mocked_request, _ = self._update_days_with_mocked_connections(titles=titles)
         requested_days = [call.kwargs["day"] for call in mocked_request.call_args_list]
