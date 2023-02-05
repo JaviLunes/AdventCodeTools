@@ -24,10 +24,8 @@ class AdventCalendar:
 
     def _find_table_start(self) -> int:
         """Locate the first line numbers of the README file's puzzle calendar table."""
-        with open(self.paths.path_readme, mode="r") as file:
-            lines = file.readlines()
         section_found = True
-        for n, line in enumerate(lines):
+        for n, line in enumerate(self._read_readme()):
             if line == "### Puzzle calendar:\n":
                 section_found = True
             if section_found and line.startswith("| "):
@@ -40,8 +38,7 @@ class AdventCalendar:
 
     def _extract_readme_rows(self) -> list[str]:
         """Extract all the puzzle calendar lines printed in the README file."""
-        with open(self.paths.path_readme, mode="r", encoding="utf-8") as file:
-            lines = file.readlines()
+        lines = self._read_readme()
         headers = lines[self._table_start]
         data_lines = lines[self._table_start + 2:self._table_start + 27]
         return [headers] + data_lines
@@ -128,9 +125,17 @@ class AdventCalendar:
 
     def write_to_readme(self):
         """Replace the calendar table in the README file with the stored one."""
-        with open(self.paths.path_readme, mode="r", encoding="utf-8") as file:
-            lines = file.readlines()
+        lines = self._read_readme()
         lines[self._table_start:self._table_start + 29] = self._table_as_lines()
+        self._write_readme(lines=lines)
+
+    def _read_readme(self) -> list[str]:
+        """Open and retrieve all content lines from the README file."""
+        with open(self.paths.path_readme, mode="r", encoding="utf-8") as file:
+            return file.readlines()
+
+    def _write_readme(self, lines: list[str]):
+        """Open and replace all content lines from the README file."""
         with open(self.paths.path_readme, mode="w", encoding="utf-8") as file:
             file.writelines(lines)
 
