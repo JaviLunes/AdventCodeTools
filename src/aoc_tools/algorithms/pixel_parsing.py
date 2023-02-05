@@ -6,7 +6,7 @@ from collections.abc import Iterable
 from pathlib import Path
 
 # Local application imports:
-from aoc_tools.puzzle_solving import read_puzzle_input
+from aoc_tools.manage.puzzle_solving import read_puzzle_input
 
 # Set constants:
 DATA_PATH = Path(__file__).parent / "data"

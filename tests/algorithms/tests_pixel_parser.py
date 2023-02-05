@@ -6,7 +6,7 @@ from pathlib import Path
 import unittest
 
 # Local application imports:
-from aoc_tools.puzzle_solving import read_puzzle_input
+from aoc_tools.manage.puzzle_solving import read_puzzle_input
 from aoc_tools.algorithms.pixel_parsing import PixelParser
 
 # Set constants:

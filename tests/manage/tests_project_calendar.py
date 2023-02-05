@@ -8,8 +8,8 @@ import unittest
 from unittest import mock
 
 # Local application imports:
-from aoc_tools.project_calendar import AdventCalendar
 from aoc_tools.build.paths_manager import PathsManager
+from aoc_tools.manage.project_calendar import AdventCalendar
 
 
 # noinspection PyProtectedMember

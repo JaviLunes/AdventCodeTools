@@ -8,7 +8,7 @@ from time import time
 
 # Local application imports:
 from aoc_tools.build.paths_manager import PathsManager
-from aoc_tools.project_calendar import AdventCalendar
+from aoc_tools.manage.project_calendar import AdventCalendar
 
 
 def read_puzzle_input(input_file: Path, encoding: str = "utf-8") -> list[str]:
