@@ -2,6 +2,7 @@
 """Tools for computing the solutions of advent puzzles."""
 
 # Standard library imports:
+from collections.abc import Callable
 from importlib import import_module
 from pathlib import Path
 from time import time
@@ -9,6 +10,10 @@ from time import time
 # Local application imports:
 from aoc_tools.build.paths_manager import PathsManager
 from aoc_tools.manage.project_calendar import AdventCalendar
+
+# Define custom types:
+SolFunc = Callable[[], tuple[str | None, str | None]]
+SolutionsAndTime = tuple[str | None, str | None, float]
 
 
 def read_puzzle_input(input_file: Path, encoding: str = "utf-8") -> list[str]:
@@ -58,13 +63,26 @@ class AdventSolver:
             self.calendar.update_day(day=day, s1=s1, s2=s2, timing=timing)
         self.calendar.write_to_readme()
 
-    def _solve_day(self, day: int) -> tuple[str | None, str | None, float]:
-        """Get the solutions and execution time for the target day's puzzles."""
+    def _solve_day(self, day: int) -> SolutionsAndTime:
+        """Get the solutions and execution time for the target day's puzzle."""
         self.paths.day = day
+        sol_func = self._import_solution_function()
+        if sol_func is None:
+            return None, None, 0
+        return self._solve_and_time(sol_func=sol_func)
+
+    def _import_solution_function(self) -> SolFunc | None:
+        """Try to retrieve the solution function for the target day's puzzle."""
         try:
             module = import_module(self.paths.module_solution)
         except ModuleNotFoundError:
-            return None, None, 0
+            return None
+        else:
+            return module.compute_solution()
+
+    @staticmethod
+    def _solve_and_time(sol_func: SolFunc) -> SolutionsAndTime:
+        """Execute and return output and execution time for the provided function."""
         start = time()
-        solution_1, solution_2 = module.compute_solution()
+        solution_1, solution_2 = sol_func()
         return solution_1, solution_2, time() - start
