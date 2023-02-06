@@ -134,6 +134,11 @@ class PathsManager:
         return self._base_path / Path(self._replace_marks(str(path)))
 
     @property
+    def path_input(self) -> Path:
+        """The file path of the input file for the daily puzzle."""
+        return self._files_map[PUZZLE_FILE_NAME_INPUT]
+
+    @property
     def path_input_from_solution(self) -> str:
         """File path to the target day's input file from the solution's file path."""
         return self._path_target_from_source(
