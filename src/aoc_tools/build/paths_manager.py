@@ -182,6 +182,11 @@ class PathsManager:
         return f"https://adventofcode.com/{self.year}/day/{self.day}"
 
     @property
+    def url_advent_input(self) -> str:
+        """URL to the Advent of Code web page with the puzzle input data."""
+        return self.url_advent_puzzle + "/input"
+
+    @property
     def url_github_solution(self) -> str:
         """URL to the GitHub repository page with the solution script."""
         return f"https://github.com/JaviLunes/AdventCode$year/tree/master" \
