@@ -66,7 +66,7 @@ class AdventScrapper:
 
     def _parse_web_puzzle_name(self, web_content: bytes) -> str:
         """Extract the name of a daily puzzle from its description webpage."""
-        soup = BeautifulSoup(markup=web_content, features="html5lib")
+        soup = BeautifulSoup(markup=web_content, features="html.parser")
         article_tag = soup.find("article", attrs={"class": "day-desc"})
         page_title = article_tag.find_next("h2").text
         rx = f"^--- Day {self.paths.day}: (?P<name>.+) ---$"
