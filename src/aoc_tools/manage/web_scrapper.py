@@ -34,6 +34,15 @@ class AdventScrapper:
             target_url=self.paths.url_advent_puzzle,
             parse_func=self._parse_web_puzzle_name)
 
+    def scrap_puzzle_input(self, day: int) -> list[str] | None:
+        """Try to extract the lines of the target day's puzzle input."""
+        self.paths.day = day
+        # TODO: In production code, this scrapping requires providing log-in
+        #  credentials at the content-request stage.
+        return self._scrap(
+            target_url=self.paths.url_advent_input,
+            parse_func=self._parse_web_puzzle_input)
+
     def _scrap(self, target_url: str, parse_func: Callable[[bytes], Parsed]) -> Parsed:
         """Try to scrap and parse the content of a target URL."""
         try:
@@ -63,6 +72,16 @@ class AdventScrapper:
         if not code == 200:
             raise ScrapError(f"The request returned a {code} status code.")
         return request.content
+
+    @staticmethod
+    def _parse_web_puzzle_input(web_content: bytes) -> list[str]:
+        """Extract the lines of data of a daily puzzle input from its webpage."""
+        soup = BeautifulSoup(markup=web_content, features="html.parser")
+        lines = [line + "\n" for line in soup.text.split("\r\n")]
+        if lines[-1] == "\n":
+            lines.pop(-1)
+            lines[-1] = lines[-1].removesuffix("\n")
+        return lines
 
     def _parse_web_puzzle_name(self, web_content: bytes) -> str:
         """Extract the name of a daily puzzle from its description webpage."""

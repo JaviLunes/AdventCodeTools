@@ -99,3 +99,45 @@ class ParsePuzzleNameTests(unittest.TestCase):
             content = web_page.read()
         with self.assertRaises(ScrapError):
             self.scrapper._parse_web_puzzle_name(web_content=content)
+
+
+class ParsePuzzleInputTests(unittest.TestCase):
+    def setUp(self) -> None:
+        """Define tools to be tested."""
+        past_year = datetime.date.today().year - 1
+        self.paths = PathsManager(year=past_year, build_base_path=Path(r"Z:"))
+        self.scrapper = AdventScrapper(paths=self.paths)
+
+    def test_keep_leading_white_spaces_on_first_line(self):
+        """Verify that the first parsed line hasn't lost any leading white space."""
+        with open(DATA_PATH / "puzzle_input_2022_05_cut.txt", mode="r") as text_file:
+            expected_lines = text_file.readlines()
+        with open(DATA_PATH / "web_input_2022_05_cut.html", mode="rb") as web_page:
+            content = web_page.read()
+        scrapped_lines = self.scrapper._parse_web_puzzle_input(web_content=content)
+        self.assertListEqual(expected_lines, scrapped_lines)
+
+    def test_keep_intermediate_empty_line(self):
+        """Verify that all empty lines (except the last one) are not removed."""
+        with open(DATA_PATH / "puzzle_input_2022_22_cut.txt", mode="r") as text_file:
+            expected_lines = text_file.readlines()
+        with open(DATA_PATH / "web_input_2022_22_cut.html", mode="rb") as web_page:
+            content = web_page.read()
+        scrapped_lines = self.scrapper._parse_web_puzzle_input(web_content=content)
+        self.assertListEqual(expected_lines, scrapped_lines)
+
+    def test_remove_last_empty_line(self):
+        """Verify that the last parsed line is not an empty line."""
+        with open(DATA_PATH / "puzzle_input_2021_06_cut.txt", mode="r") as text_file:
+            expected_lines = text_file.readlines()
+        with open(DATA_PATH / "web_input_2021_06_cut.html", mode="rb") as web_page:
+            content = web_page.read()
+        scrapped_lines = self.scrapper._parse_web_puzzle_input(web_content=content)
+        self.assertListEqual(expected_lines, scrapped_lines)
+
+    def test_use_unix_style_line_ending(self):
+        """Verify that the parsed lines use the "\n" end-line character."""
+        with open(DATA_PATH / "web_input_2022_05_cut.html", mode="rb") as web_page:
+            content = web_page.read()
+        scrapped_lines = self.scrapper._parse_web_puzzle_input(web_content=content)
+        self.assertTrue(all(line.endswith("\n") for line in scrapped_lines[:-1]))
