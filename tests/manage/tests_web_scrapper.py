@@ -13,18 +13,33 @@ import responses
 
 # Local application imports:
 from aoc_tools.build.paths_manager import PathsManager
-from aoc_tools.manage.web_scrapper import AdventScrapper, ScrapError
+from aoc_tools.manage.web_scrapper import AdventScrapper, LogInError, ScrapError
+from aoc_tools.manage.web_scrapper import AOC_BAD_LOGIN_CODE
+from aoc_tools.manage import web_scrapper as tested_module
 
 # Set constants:
 DATA_PATH = Path(__file__).parent / "data"
+PAST_YEAR = datetime.date.today().year - 1
 
 
 class ScrapTests(unittest.TestCase):
     def setUp(self) -> None:
         """Define tools to be tested."""
-        past_year = datetime.date.today().year - 1
-        self.paths = PathsManager(year=past_year, build_base_path=Path(r"Z:"))
+        self.paths = PathsManager(year=PAST_YEAR, build_base_path=Path(r"Z:"))
         self.scrapper = AdventScrapper(paths=self.paths)
+
+    def test_use_generated_credentials_on_request(self):
+        """The credentials built by the corresponding method are included in request."""
+        target_url = "http://mocked_url.mock"
+        mocked_cookies = dict(user="TheseAreNotEven", password="TheExpectedParams")
+        target_1, target_2 = self.scrapper, tested_module.requests
+        attr_1 = target_1._build_credentials.__name__
+        attr_2 = target_2.get.__name__
+        with mock.patch.object(target_1, attribute=attr_1, return_value=mocked_cookies):
+            with mock.patch.object(target_2, attribute=attr_2) as mocked_get:
+                self.scrapper._scrap(
+                    target_url=target_url, parse_func=mock.Mock, use_log_in=True)
+        self.assertDictEqual(mocked_cookies, mocked_get.call_args.kwargs["cookies"])
 
     def test_avoid_requesting_future_date(self):
         """If target date is future, do not make any request, and return None."""
@@ -33,7 +48,8 @@ class ScrapTests(unittest.TestCase):
         attr_2 = self.scrapper._get_page_content.__name__
         with mock.patch.object(target=target, attribute=attr_1, return_value=mocked_now):
             with mock.patch.object(target=target, attribute=attr_2) as mocked_request:
-                output = self.scrapper._scrap(target_url="", parse_func=mock.Mock())
+                output = self.scrapper._scrap(
+                    target_url="", parse_func=mock.Mock(), use_log_in=False)
         self.assertFalse(mocked_request.called)
         self.assertIsNone(output)
 
@@ -41,13 +57,16 @@ class ScrapTests(unittest.TestCase):
     def test_avoid_parsing_responses_with_non_200_status(self):
         """If the response's status is not 200, return None instead of parsing it."""
         target_url = "http://mocked_url.mock"
-        non_ok_codes = [int(code) for code in http.HTTPStatus if code != 200]
+        omitted = [200, AOC_BAD_LOGIN_CODE]
+        non_ok_codes = [int(code) for code in http.HTTPStatus if code not in omitted]
         for code in non_ok_codes:
-            responses.get(url=target_url, status=code)
-            mocked_parse = mock.Mock()
-            output = self.scrapper._scrap(target_url=target_url, parse_func=mocked_parse)
-            self.assertIsNone(output)
-            self.assertFalse(mocked_parse.called)
+            with self.subTest(code=code):
+                responses.get(url=target_url, status=code)
+                mocked_parse = mock.Mock()
+                output = self.scrapper._scrap(
+                    target_url=target_url, parse_func=mocked_parse, use_log_in=False)
+                self.assertIsNone(output)
+                self.assertFalse(mocked_parse.called)
 
     @responses.activate
     def test_return_none_on_failed_content_parsing(self):
@@ -55,7 +74,8 @@ class ScrapTests(unittest.TestCase):
         target_url = "http://mocked_url.mock"
         responses.get(url=target_url)
         mocked_parse = mock.Mock(side_effect=ScrapError)
-        output = self.scrapper._scrap(target_url=target_url, parse_func=mocked_parse)
+        output = self.scrapper._scrap(
+            target_url=target_url, parse_func=mocked_parse, use_log_in=False)
         self.assertTrue(mocked_parse.called)
         self.assertIsNone(output)
 
@@ -63,8 +83,7 @@ class ScrapTests(unittest.TestCase):
 class ParsePuzzleNameTests(unittest.TestCase):
     def setUp(self) -> None:
         """Define tools to be tested."""
-        past_year = datetime.date.today().year - 1
-        self.paths = PathsManager(year=past_year, build_base_path=Path(r"Z:"))
+        self.paths = PathsManager(year=PAST_YEAR, build_base_path=Path(r"Z:"))
         self.scrapper = AdventScrapper(paths=self.paths)
 
     def test_parse_puzzle_name_2022_1(self):
@@ -104,8 +123,7 @@ class ParsePuzzleNameTests(unittest.TestCase):
 class ParsePuzzleInputTests(unittest.TestCase):
     def setUp(self) -> None:
         """Define tools to be tested."""
-        past_year = datetime.date.today().year - 1
-        self.paths = PathsManager(year=past_year, build_base_path=Path(r"Z:"))
+        self.paths = PathsManager(year=PAST_YEAR, build_base_path=Path(r"Z:"))
         self.scrapper = AdventScrapper(paths=self.paths)
 
     def test_keep_leading_white_spaces_on_first_line(self):
@@ -141,3 +159,73 @@ class ParsePuzzleInputTests(unittest.TestCase):
             content = web_page.read()
         scrapped_lines = self.scrapper._parse_web_puzzle_input(web_content=content)
         self.assertTrue(all(line.endswith("\n") for line in scrapped_lines[:-1]))
+
+
+class SecretsTests(unittest.TestCase):
+    def setUp(self) -> None:
+        """Define tools to be tested."""
+        self.secrets_file = DATA_PATH / "credentials_fake.txt"
+        self.secrets_file_missing = DATA_PATH / "credentials_missing.txt"
+        self.secrets_file_empty = DATA_PATH / "credentials_empty.txt"
+        self.secrets_file_bad_format = DATA_PATH / "credentials_bad_format.txt"
+
+    @staticmethod
+    def _mock_paths_manager(secrets_path: Path) -> mock.Mock:
+        """Create a mocked PathsManager instance pointing to the target secrets file."""
+        real_paths = PathsManager(year=PAST_YEAR, build_base_path=Path(r"Z:"))
+        mocked_paths = mock.Mock(spec_set=real_paths)
+        mocked_paths.path_secrets = secrets_path
+        mocked_paths.year = PAST_YEAR
+        return mocked_paths
+
+    def test_read_credentials_from_file(self):
+        """The log-in session ID must be read from the secrets file."""
+        paths = self._mock_paths_manager(secrets_path=self.secrets_file)
+        scrapper = AdventScrapper(paths=paths)
+        attr = scrapper._read_secrets.__name__
+        mocked_read = mock.Mock(return_value=["MockedSecretsContent"])
+        with mock.patch.object(target=scrapper, attribute=attr, new=mocked_read):
+            scrapper._build_credentials(use_log_in=True)
+        self.assertEqual(self.secrets_file, mocked_read.call_args.kwargs["file_path"])
+
+    def test_use_read_credentials(self):
+        """The generated credentials map must use the read session ID."""
+        paths = self._mock_paths_manager(secrets_path=self.secrets_file)
+        scrapper = AdventScrapper(paths=paths)
+        with open(paths.path_secrets, mode="r") as secrets_file:
+            expected_id = secrets_file.readlines()[0]
+        expected_credentials = dict(session=expected_id)
+        built_credentials = scrapper._build_credentials(use_log_in=True)
+        self.assertDictEqual(expected_credentials, built_credentials)
+
+    def test_raise_if_file_does_not_exist(self):
+        """If secrets file is empty, raise and ask user to introduce required data."""
+        paths = self._mock_paths_manager(secrets_path=self.secrets_file_missing)
+        scrapper = AdventScrapper(paths=paths)
+        with self.assertRaises(LogInError):
+            scrapper._build_credentials(use_log_in=True)
+
+    def test_raise_if_no_credentials_in_file(self):
+        """If secrets file is empty, raise and ask user to introduce required data."""
+        paths = self._mock_paths_manager(secrets_path=self.secrets_file_empty)
+        scrapper = AdventScrapper(paths=paths)
+        with self.assertRaises(LogInError):
+            scrapper._build_credentials(use_log_in=True)
+
+    def test_raise_if_credentials_are_not_as_expected(self):
+        """If read credentials data doesn't match expected format, raise and ask user."""
+        paths = self._mock_paths_manager(secrets_path=self.secrets_file_bad_format)
+        scrapper = AdventScrapper(paths=paths)
+        with self.assertRaises(LogInError):
+            scrapper._build_credentials(use_log_in=True)
+
+    @responses.activate
+    def test_raise_if_request_fails_due_to_credentials(self):
+        """If the web request doesn't accept the read credentials, raise and ask user."""
+        paths = self._mock_paths_manager(secrets_path=self.secrets_file)
+        scrapper = AdventScrapper(paths=paths)
+        paths.day = 1
+        target_url = "http://mocked_url.mock"
+        responses.get(url=target_url, status=AOC_BAD_LOGIN_CODE)
+        with self.assertRaises(LogInError):
+            scrapper._scrap(target_url=target_url, parse_func=mock.Mock, use_log_in=True)
