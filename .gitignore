@@ -8,3 +8,6 @@
 *.egg-info
 *.egg
 dist
+
+# Private files:
+.secrets

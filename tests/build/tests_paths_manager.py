@@ -165,6 +165,14 @@ class PathsTests(unittest.TestCase):
                 script=False, name="tests_solution.py")
             self.assertIn(expected_path, self.manager.file_templates)
 
+    def test_input_path(self):
+        """Assert that the file path for this file is as expected."""
+        for day in DAYS:
+            self.manager.day = day
+            expected_path = self._get_buildable_path(
+                name="puzzle_input.txt", day=day, script=True)
+            self.assertEqual(expected_path, self.manager.path_input)
+
     def test_input_path_from_solution(self):
         """Assert that the relative file path for this file is as expected."""
         for day in DAYS:
@@ -202,6 +210,13 @@ class PathsTests(unittest.TestCase):
             self.manager.day = day
             expected_path = BASE_PATH / f"AdventCode{YEAR}" / "README.md"
             self.assertEqual(expected_path, self.manager.path_readme)
+
+    def test_secrets_path(self):
+        """Assert that the secrets file path is as expected."""
+        for day in DAYS:
+            self.manager.day = day
+            expected_path = BASE_PATH / f"AdventCode{YEAR}" / ".secrets"
+            self.assertEqual(expected_path, self.manager.path_secrets)
 
 
 class ModulesTests(unittest.TestCase):

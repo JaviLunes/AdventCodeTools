@@ -1,23 +1,19 @@
 # coding=utf-8
 """Tool for reading and writing puzzle names and solution values and times."""
 
-# Standard library imports:
-import datetime
-import re
-
 # Third party imports:
-from bs4 import BeautifulSoup
 import pandas
-import requests
 
 # Local application imports:
 from aoc_tools.build.paths_manager import PathsManager
+from aoc_tools.manage.web_scrapper import AdventScrapper
 
 
 class AdventCalendar:
     """Manage the puzzle calendar table included in the README.md file."""
     def __init__(self, paths: PathsManager, data: pandas.DataFrame = None):
         self.paths = paths
+        self.scrapper = AdventScrapper(paths=paths)
         self._table_start = self._find_table_start()
         self._data = data if data is not None else self._load_from_readme()
         self._update_missing_names()
@@ -56,49 +52,11 @@ class AdventCalendar:
 
     def _update_missing_names(self):
         """Scrap and store missing puzzle names (if possible)."""
-        year, now = self.paths.year, self._get_current_time()
         for i, day_name in enumerate(self.puzzle_names):
-            day = i + 1
-            name = day_name.split(": ")[1]
-            if name != "-":
-                continue
-            if datetime.datetime(year=year, month=12, day=day) > now:
-                continue
-            web_content = self._get_page_content(day=day)
-            page_title = self._scrap_html_text(web_content=web_content)
-            self._data.loc[day, "Puzzle"] = self._parse_name(text=page_title, day=day)
-
-    @staticmethod
-    def _get_current_time() -> datetime.datetime:
-        """Encapsulate the datetime.now function, for mock-testing purposes."""
-        return datetime.datetime.now()
-
-    def _get_page_content(self, day: int) -> bytes | None:
-        """Download a web page and return its content in HTML form."""
-        self.paths.day = day
-        request = requests.get(self.paths.url_advent_puzzle)
-        if not request.status_code == 200:
-            return None
-        return request.content
-
-    @staticmethod
-    def _scrap_html_text(web_content: bytes | None) -> str | None:
-        """Extract the text of the title tag from the provided file."""
-        if web_content is None:
-            return "-"
-        soup = BeautifulSoup(markup=web_content, features="html5lib")
-        article_tag = soup.find("article", attrs={"class": "day-desc"})
-        return article_tag.find_next("h2").text
-
-    @staticmethod
-    def _parse_name(text: str | None, day: int) -> str:
-        """Check the scrapped text and extract the name of the daily puzzle."""
-        if text is None:
-            return "-"
-        rx = fr"^--- Day {day}: (?P<name>.+) ---$"
-        match = re.match(pattern=rx, string=text)
-        assert match is not None
-        return match["name"]
+            if day_name.split(": ")[1] == "-":
+                scrapped_name = self.scrapper.scrap_puzzle_name(day=i + 1)
+                if scrapped_name is not None:
+                    self._data.loc[i + 1, "Puzzle"] = scrapped_name
 
     @property
     def puzzle_names(self) -> list[str]:

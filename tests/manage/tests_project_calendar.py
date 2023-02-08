@@ -2,7 +2,6 @@
 """Tests for the daily-puzzle-calendar tool."""
 
 # Standard library imports:
-import datetime
 from pathlib import Path
 import unittest
 from unittest import mock
@@ -33,48 +32,34 @@ class UpdateNamesTests(unittest.TestCase):
         self.calendar = build_test_calendar(year=2022)
         self.assertListEqual(["-"] * 25, list(self.calendar._data["Puzzle"]))
 
-    def _update_days_with_mocked_connections(self, titles: list[str]) \
-            -> tuple[mock.Mock, mock.Mock]:
-        """Make the AdventCalendar try to update missing titles, mocking requests."""
-        target = self.calendar
-        attr_1 = self.calendar._get_page_content.__name__
-        attr_2 = self.calendar._scrap_html_text.__name__
-        with mock.patch.object(target=target, attribute=attr_1) as mocked_request:
-            with mock.patch.object(target, attr_2, side_effect=titles) as mocked_scrap:
-                self.calendar._update_missing_names()
-        return mocked_request, mocked_scrap
+    def _mock_scrap_update_days(self, scrapped_names: list[str]) -> mock.Mock:
+        """Make the AdventCalendar update missing titles, mocking the scrapping."""
+        target = self.calendar.scrapper
+        attr = target.scrap_puzzle_name.__name__
+        with mock.patch.object(target, attribute=attr, side_effect=scrapped_names) \
+                as mocked_scrapping:
+            self.calendar._update_missing_names()
+        return mocked_scrapping
 
     def test_update_unknown_puzzle_names(self):
         """All non-future days with unknown name must be updated from the web."""
         expected_names = [f"Puzzle {i + 1}" for i in range(25)]
-        titles = [f"--- Day {i + 1}: Puzzle {i + 1} ---" for i in range(25)]
-        self._update_days_with_mocked_connections(titles=titles)
+        names = [f"Puzzle {i + 1}" for i in range(25)]
+        self._mock_scrap_update_days(scrapped_names=names)
         self.assertListEqual(expected_names, list(self.calendar._data["Puzzle"]))
 
     def test_keep_unknown_names_if_not_possible_to_get_them(self):
         """For those unknown names that can't be scrapped, the '-' value is kept."""
         expected_names = [f"Puzzle {i + 1}" if i % 2 == 0 else "-" for i in range(25)]
-        titles = [f"--- Day {i + 1}: Puzzle {i + 1} ---" if i % 2 == 0 else None
-                  for i in range(25)]
-        self._update_days_with_mocked_connections(titles=titles)
+        names = [f"Puzzle {i + 1}" if i % 2 == 0 else None for i in range(25)]
+        self._mock_scrap_update_days(scrapped_names=names)
         self.assertListEqual(expected_names, list(self.calendar._data["Puzzle"]))
 
     def test_do_not_scrap_known_names(self):
         """Avoid requesting and scrapping those names already known."""
-        names = ["Puzzle name" if i % 2 == 0 else "-" for i in range(25)]
-        self.calendar._data["Puzzle"] = names
-        titles = [f"--- Day {i + 1}: Puzzle {i + 1} ---" for i in range(1, 25, 2)]
-        mocked_request, _ = self._update_days_with_mocked_connections(titles=titles)
-        requested_days = [call.kwargs["day"] for call in mocked_request.call_args_list]
+        already_known_names = ["Puzzle name" if i % 2 == 0 else "-" for i in range(25)]
+        self.calendar._data["Puzzle"] = already_known_names
+        names = [f"Puzzle {i + 1}" for i in range(1, 25, 2)]
+        mocked_scrapping = self._mock_scrap_update_days(scrapped_names=names)
+        requested_days = [call.kwargs["day"] for call in mocked_scrapping.call_args_list]
         self.assertListEqual(list(range(2, 25, 2)), requested_days)
-
-    def test_do_not_scrap_future_names(self):
-        """Avoid requesting and scrapping those names of days not yet published."""
-        titles = [f"--- Day {i + 1}: Puzzle {i + 1} ---" for i in range(25)]
-        target = self.calendar
-        attr = target._get_current_time.__name__
-        mocked_dt = datetime.datetime(year=target.paths.year, month=12, day=15, hour=0)
-        with mock.patch.object(target=target, attribute=attr, return_value=mocked_dt):
-            mocked_request, _ = self._update_days_with_mocked_connections(titles=titles)
-        requested_days = [call.kwargs["day"] for call in mocked_request.call_args_list]
-        self.assertListEqual(list(range(1, 16)), requested_days)

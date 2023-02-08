@@ -12,6 +12,7 @@ PUZZLE_FILE_NAME_SOLUTION = "solution.py"
 PUZZLE_FILE_NAME_TESTS = "tests_solution.py"
 PUZZLE_FILE_NAME_TOOLS = "tools.py"
 PROJECT_FILE_NAME_README = "README.md"
+PROJECT_FILE_NAME_SECRETS = ".secrets"
 
 
 class PathsManager:
@@ -134,6 +135,18 @@ class PathsManager:
         return self._base_path / Path(self._replace_marks(str(path)))
 
     @property
+    def path_secrets(self) -> Path:
+        """The file path of the built project's secrets file."""
+        path = next(TEMPLATES_PATH.rglob(PROJECT_FILE_NAME_SECRETS))
+        path = path.relative_to(TEMPLATES_PATH)
+        return self._base_path / Path(self._replace_marks(str(path)))
+
+    @property
+    def path_input(self) -> Path:
+        """The file path of the input file for the daily puzzle."""
+        return self._files_map[PUZZLE_FILE_NAME_INPUT]
+
+    @property
     def path_input_from_solution(self) -> str:
         """File path to the target day's input file from the solution's file path."""
         return self._path_target_from_source(
@@ -175,6 +188,11 @@ class PathsManager:
     def url_advent_puzzle(self) -> str:
         """URL to the Advent of Code web page with the puzzle description."""
         return f"https://adventofcode.com/{self.year}/day/{self.day}"
+
+    @property
+    def url_advent_input(self) -> str:
+        """URL to the Advent of Code web page with the puzzle input data."""
+        return self.url_advent_puzzle + "/input"
 
     @property
     def url_github_solution(self) -> str:
