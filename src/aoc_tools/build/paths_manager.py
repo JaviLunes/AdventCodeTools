@@ -12,6 +12,7 @@ PUZZLE_FILE_NAME_SOLUTION = "solution.py"
 PUZZLE_FILE_NAME_TESTS = "tests_solution.py"
 PUZZLE_FILE_NAME_TOOLS = "tools.py"
 PROJECT_FILE_NAME_README = "README.md"
+PROJECT_FILE_NAME_SECRETS = ".secrets"
 
 
 class PathsManager:
@@ -130,6 +131,13 @@ class PathsManager:
     def path_readme(self) -> Path:
         """The file path of the built project's README file."""
         path = next(TEMPLATES_PATH.rglob(PROJECT_FILE_NAME_README))
+        path = path.relative_to(TEMPLATES_PATH)
+        return self._base_path / Path(self._replace_marks(str(path)))
+
+    @property
+    def path_secrets(self) -> Path:
+        """The file path of the built project's secrets file."""
+        path = next(TEMPLATES_PATH.rglob(PROJECT_FILE_NAME_SECRETS))
         path = path.relative_to(TEMPLATES_PATH)
         return self._base_path / Path(self._replace_marks(str(path)))
 

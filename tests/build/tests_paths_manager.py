@@ -211,6 +211,13 @@ class PathsTests(unittest.TestCase):
             expected_path = BASE_PATH / f"AdventCode{YEAR}" / "README.md"
             self.assertEqual(expected_path, self.manager.path_readme)
 
+    def test_secrets_path(self):
+        """Assert that the secrets file path is as expected."""
+        for day in DAYS:
+            self.manager.day = day
+            expected_path = BASE_PATH / f"AdventCode{YEAR}" / ".secrets"
+            self.assertEqual(expected_path, self.manager.path_secrets)
+
 
 class ModulesTests(unittest.TestCase):
     def setUp(self) -> None:
