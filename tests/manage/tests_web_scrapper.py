@@ -22,6 +22,59 @@ DATA_PATH = Path(__file__).parent / "data"
 PAST_YEAR = datetime.date.today().year - 1
 
 
+class PublicMethodsTests(unittest.TestCase):
+    def setUp(self) -> None:
+        """Define tools to be tested."""
+        self.paths = PathsManager(year=PAST_YEAR, build_base_path=Path(r"Z:"))
+        self.scrapper = AdventScrapper(paths=self.paths)
+
+    def test_puzzle_input_scrapping_uses_proper_url(self):
+        """The URL to the input page of the target daily puzzle is used."""
+        attr = self.scrapper._scrap.__name__
+        with mock.patch.object(target=self.scrapper, attribute=attr) as mocked_scrap:
+            self.scrapper.scrap_puzzle_input(day=1)
+        expected_url = self.scrapper.paths.url_advent_input
+        self.assertEqual(expected_url, mocked_scrap.call_args.kwargs["target_url"])
+
+    def test_puzzle_input_scrapping_uses_proper_parse_func(self):
+        """The puzzle-input-web-parsing method is used as parsing function."""
+        attr = self.scrapper._scrap.__name__
+        with mock.patch.object(target=self.scrapper, attribute=attr) as mocked_scrap:
+            self.scrapper.scrap_puzzle_input(day=1)
+        expected_func = self.scrapper._parse_web_puzzle_input
+        self.assertEqual(expected_func, mocked_scrap.call_args.kwargs["parse_func"])
+
+    def test_puzzle_input_scrapping_uses_log_in(self):
+        """This scrapping method does require a log-in into the AoC web."""
+        attr = self.scrapper._scrap.__name__
+        with mock.patch.object(target=self.scrapper, attribute=attr) as mocked_scrap:
+            self.scrapper.scrap_puzzle_input(day=1)
+        self.assertTrue(mocked_scrap.call_args.kwargs["use_log_in"])
+
+    def test_puzzle_name_scrapping_uses_proper_url(self):
+        """The URL to the description page of the target daily puzzle is used."""
+        attr = self.scrapper._scrap.__name__
+        with mock.patch.object(target=self.scrapper, attribute=attr) as mocked_scrap:
+            self.scrapper.scrap_puzzle_name(day=1)
+        expected_url = self.scrapper.paths.url_advent_puzzle
+        self.assertEqual(expected_url, mocked_scrap.call_args.kwargs["target_url"])
+
+    def test_puzzle_name_scrapping_uses_proper_parse_func(self):
+        """The puzzle-name-web-parsing method is used as parsing function."""
+        attr = self.scrapper._scrap.__name__
+        with mock.patch.object(target=self.scrapper, attribute=attr) as mocked_scrap:
+            self.scrapper.scrap_puzzle_name(day=1)
+        expected_func = self.scrapper._parse_web_puzzle_name
+        self.assertEqual(expected_func, mocked_scrap.call_args.kwargs["parse_func"])
+
+    def test_puzzle_name_scrapping_does_not_use_log_in(self):
+        """This scrapping method does not require a log-in into the AoC web."""
+        attr = self.scrapper._scrap.__name__
+        with mock.patch.object(target=self.scrapper, attribute=attr) as mocked_scrap:
+            self.scrapper.scrap_puzzle_name(day=1)
+        self.assertFalse(mocked_scrap.call_args.kwargs["use_log_in"])
+
+
 class ScrapTests(unittest.TestCase):
     def setUp(self) -> None:
         """Define tools to be tested."""
